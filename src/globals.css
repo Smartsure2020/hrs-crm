@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 220 25% 14%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 25% 14%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 25% 14%;
+    --primary: 215 55% 24%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 215 20% 95%;
+    --secondary-foreground: 215 55% 24%;
+    --muted: 215 20% 95%;
+    --muted-foreground: 215 10% 45%;
+    --accent: 215 20% 93%;
+    --accent-foreground: 215 55% 24%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 215 15% 90%;
+    --input: 215 15% 90%;
+    --ring: 215 55% 24%;
+    --radius: 0.5rem;
+    --chart-1: 215 55% 24%;
+    --chart-2: 215 45% 50%;
+    --chart-3: 25 85% 55%;
+    --chart-4: 150 45% 45%;
+    --chart-5: 340 65% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(215 15% 80%);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(215 15% 65%);
+}
+
+/* Pipeline drag styles */
+.pipeline-card-dragging {
+  opacity: 0.5;
+  transform: rotate(2deg);
+}

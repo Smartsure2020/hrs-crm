@@ -1,0 +1,165 @@
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+import { base44 } from "@/api/base44Client";
+import {
+  LayoutDashboard, Users, Briefcase, KanbanSquare, FileText,
+  CheckSquare, Shield, BarChart3, ChevronLeft, ChevronRight,
+  LogOut, Bell, Search, Menu, X
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+
+const NAV_ITEMS = [
+  { name: "Dashboard", icon: LayoutDashboard, page: "Dashboard" },
+  { name: "Clients", icon: Users, page: "Clients" },
+  { name: "Pipeline", icon: KanbanSquare, page: "Pipeline" },
+  { name: "Policies", icon: Shield, page: "Policies" },
+  { name: "Tasks", icon: CheckSquare, page: "Tasks" },
+  { name: "Documents", icon: FileText, page: "Documents" },
+  { name: "Reports", icon: BarChart3, page: "Reports" },
+];
+
+export default function Layout({ children, currentPageName }) {
+  const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    base44.auth.me().then(setUser).catch(() => {});
+  }, []);
+
+  const handleLogout = () => {
+    base44.auth.logout();
+  };
+
+  return (
+    <div className="flex h-screen bg-[#f8f9fb] overflow-hidden">
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-40 lg:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside
+        className={`fixed lg:relative z-50 h-full bg-[#1a2744] text-white flex flex-col transition-all duration-300 ease-in-out
+          ${collapsed ? "lg:w-[72px]" : "lg:w-[250px]"}
+          ${mobileOpen ? "w-[250px] translate-x-0" : "w-[250px] -translate-x-full lg:translate-x-0"}`}
+      >
+        {/* Logo */}
+        <div className="h-16 flex items-center justify-between px-4 border-b border-white/10">
+          {!collapsed && (
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
+                <span className="text-[#1a2744] font-bold text-sm">HRS</span>
+              </div>
+              <div>
+                <div className="font-semibold text-sm leading-tight">HRS Insurance</div>
+                <div className="text-[10px] text-white/50 tracking-widest uppercase">CRM</div>
+              </div>
+            </div>
+          )}
+          {collapsed && (
+            <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center mx-auto">
+              <span className="text-[#1a2744] font-bold text-xs">H</span>
+            </div>
+          )}
+          <button
+            onClick={() => setMobileOpen(false)}
+            className="lg:hidden text-white/70 hover:text-white"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Nav */}
+        <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
+          {NAV_ITEMS.map((item) => {
+            const isActive = currentPageName === item.page;
+            return (
+              <Link
+                key={item.page}
+                to={createPageUrl(item.page)}
+                onClick={() => setMobileOpen(false)}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group
+                  ${isActive
+                    ? "bg-white/15 text-white shadow-sm"
+                    : "text-white/60 hover:text-white hover:bg-white/8"
+                  }`}
+              >
+                <item.icon className={`w-[18px] h-[18px] flex-shrink-0 ${isActive ? "text-orange-400" : ""}`} />
+                {!collapsed && (
+                  <span className="text-sm font-medium truncate">{item.name}</span>
+                )}
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* User section */}
+        <div className="border-t border-white/10 p-3">
+          {user && !collapsed && (
+            <div className="flex items-center gap-3 px-3 py-2">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-xs font-semibold">
+                {user.full_name?.charAt(0) || "U"}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium truncate">{user.full_name || "User"}</div>
+                <div className="text-[10px] text-white/40 capitalize">{user.role || "broker"}</div>
+              </div>
+            </div>
+          )}
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-white/50 hover:text-white hover:bg-white/8 transition-all"
+          >
+            <LogOut className="w-[18px] h-[18px]" />
+            {!collapsed && <span className="text-sm">Sign Out</span>}
+          </button>
+          <button
+            onClick={() => setCollapsed(!collapsed)}
+            className="hidden lg:flex items-center gap-3 w-full px-3 py-2 rounded-lg text-white/50 hover:text-white hover:bg-white/8 transition-all mt-1"
+          >
+            {collapsed ? <ChevronRight className="w-[18px] h-[18px]" /> : <ChevronLeft className="w-[18px] h-[18px]" />}
+            {!collapsed && <span className="text-sm">Collapse</span>}
+          </button>
+        </div>
+      </aside>
+
+      {/* Main content */}
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Top bar */}
+        <header className="h-16 bg-white border-b border-gray-200/80 flex items-center justify-between px-4 lg:px-6 flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setMobileOpen(true)}
+              className="lg:hidden text-gray-500 hover:text-gray-700"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            <h1 className="text-lg font-semibold text-[#1a2744]">
+              {currentPageName || "Dashboard"}
+            </h1>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" className="text-gray-400 hover:text-gray-600">
+              <Search className="w-4 h-4" />
+            </Button>
+            <Button variant="ghost" size="icon" className="text-gray-400 hover:text-gray-600 relative">
+              <Bell className="w-4 h-4" />
+            </Button>
+          </div>
+        </header>
+
+        {/* Page content */}
+        <div className="flex-1 overflow-y-auto">
+          {children}
+        </div>
+      </main>
+    </div>
+  );
+}
