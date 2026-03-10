@@ -52,6 +52,9 @@ import Clients from './pages/Clients';
 import ClientProfile from './pages/ClientProfile';
 import Pipeline from './pages/Pipeline';
 import Tasks from './pages/Tasks';
+import Policies from './pages/Policies';
+import Documents from './pages/Documents';
+import Reports from './pages/Reports';
 import __Layout from './Layout.jsx';
 
 
@@ -61,6 +64,9 @@ export const PAGES = {
     "ClientProfile": ClientProfile,
     "Pipeline": Pipeline,
     "Tasks": Tasks,
+    "Policies": Policies,
+    "Documents": Documents,
+    "Reports": Reports,
 }
 
 export const pagesConfig = {
