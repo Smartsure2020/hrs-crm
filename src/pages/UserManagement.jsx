@@ -92,6 +92,9 @@ export default function UserManagement() {
               <SelectItem value="rejected">Rejected</SelectItem>
             </SelectContent>
           </Select>
+          <Button className="bg-[#1a2744] hover:bg-[#243556]" onClick={() => setShowInvite(true)}>
+            <UserPlus className="w-4 h-4 mr-2" /> Invite User
+          </Button>
           <Button variant="outline" size="icon" onClick={() => refetch()}>
             <RefreshCw className="w-4 h-4" />
           </Button>
