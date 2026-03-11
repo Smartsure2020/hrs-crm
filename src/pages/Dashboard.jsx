@@ -71,9 +71,9 @@ export default function Dashboard() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["tasks"] }),
   });
 
-  const totalLeads = deals.filter(d => d.stage === "lead_received").length;
-  const quotesSent = deals.filter(d => d.stage === "quote_sent").length;
-  const policyBound = deals.filter(d => d.stage === "policy_bound").length;
+  const totalLeads = deals.filter(d => ["lead","lead_received","contacted"].includes(d.stage)).length;
+  const quotesSent = deals.filter(d => ["quote_sent","quotes_received"].includes(d.stage)).length;
+  const policyBound = deals.filter(d => ["won","policy_bound"].includes(d.stage)).length;
   const renewalsDue = policies.filter(p => {
     const renewal = moment(p.renewal_date);
     return renewal.isBetween(moment(), moment().add(30, "days"));
