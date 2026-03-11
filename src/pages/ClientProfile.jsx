@@ -208,38 +208,12 @@ export default function ClientProfile() {
         </TabsContent>
 
         <TabsContent value="documents">
-          <Card className="border-0 shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between p-4 border-b">
-              <CardTitle className="text-sm">Documents</CardTitle>
-              <label className="cursor-pointer">
-                <input type="file" className="hidden" onChange={handleUpload} />
-                <Button size="sm" variant="outline" className="pointer-events-none">
-                  {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <Upload className="w-3.5 h-3.5 mr-1.5" />}
-                  Upload
-                </Button>
-              </label>
-            </CardHeader>
-            <CardContent className="p-0">
-              {documents.length === 0 ? (
-                <div className="text-center py-12 text-gray-400"><FileText className="w-8 h-8 mx-auto mb-2 opacity-30" />No documents yet</div>
-              ) : (
-                <div className="divide-y">
-                  {documents.map(doc => (
-                    <div key={doc.id} className="p-4 hover:bg-gray-50 transition-colors flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <FileText className="w-4 h-4 text-gray-400" />
-                        <div>
-                          <p className="text-sm font-medium">{doc.name}</p>
-                          <p className="text-xs text-gray-400">{doc.document_type?.replace(/_/g," ")} · v{doc.version || 1}</p>
-                        </div>
-                      </div>
-                      <a href={doc.file_url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline">Download</a>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <ClientDocuments
+            documents={documents}
+            clientId={clientId}
+            clientName={client?.client_name}
+            user={user}
+          />
         </TabsContent>
       </Tabs>
 
