@@ -9,9 +9,9 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ArrowLeft, Mail, Phone, MapPin, Building2, Edit2,
-  Shield, Briefcase, FileText, CheckSquare, Clock,
-  Upload, Loader2, RefreshCw, Trash2
+  Shield, Briefcase, FileText, CheckSquare, RefreshCw
 } from "lucide-react";
+import ClientDocuments from "@/components/clients/ClientDocuments";
 import moment from "moment";
 import ClientFormModal from "@/components/clients/ClientFormModal";
 
