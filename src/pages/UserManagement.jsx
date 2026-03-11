@@ -232,6 +232,7 @@ export default function UserManagement() {
           </Table>
         </div>
       </Card>
+      <InviteUserModal open={showInvite} onClose={() => { setShowInvite(false); queryClient.invalidateQueries({ queryKey: ["all-users"] }); }} />
     </div>
   );
 }
