@@ -8,8 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 } from "@/components/ui/table";
-import { CheckCircle, XCircle, Trash2, RefreshCw, UserCog, Users, AlertCircle } from "lucide-react";
+import { CheckCircle, XCircle, Trash2, RefreshCw, UserCog, AlertCircle, UserPlus } from "lucide-react";
 import moment from "moment";
+import InviteUserModal from "@/components/users/InviteUserModal";
 
 const STATUS_COLORS = {
   pending:  "bg-yellow-100 text-yellow-700",
