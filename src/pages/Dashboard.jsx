@@ -120,6 +120,23 @@ export default function Dashboard() {
         </Button>
       </div>
 
+      {/* Pending users alert for admin */}
+      {isAdmin && pendingCount > 0 && (
+        <Link to={createPageUrl("UserManagement")} className="block">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 flex items-center gap-3 hover:bg-yellow-100 transition-colors cursor-pointer">
+            <div className="w-9 h-9 bg-yellow-100 rounded-full flex items-center justify-center flex-shrink-0">
+              <UserCog className="w-5 h-5 text-yellow-600" />
+            </div>
+            <div className="flex-1">
+              <p className="font-semibold text-yellow-800 text-sm">
+                {pendingCount} user{pendingCount !== 1 ? "s" : ""} awaiting approval
+              </p>
+              <p className="text-yellow-600 text-xs">Click to review in User Management →</p>
+            </div>
+          </div>
+        </Link>
+      )}
+
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         <StatCard title="Total Leads" value={totalLeads} icon={Users} color="blue" />
