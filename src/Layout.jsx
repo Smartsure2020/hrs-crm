@@ -34,11 +34,14 @@ export default function Layout({ children, currentPageName }) {
       .catch(() => { setLoading(false); });
   }, []);
 
-  // Auto-set status to pending for brand-new users that have no status field
+  // Auto-set status for new users: admins get approved, others get pending
   useEffect(() => {
     if (!user) return;
     if (!user.status) {
-      base44.auth.updateMe({ status: "pending" });
+      const initialStatus = user.role === "admin" ? "approved" : "pending";
+      base44.auth.updateMe({ status: initialStatus });
+    } else if (user.role === "admin" && user.status !== "approved") {
+      base44.auth.updateMe({ status: "approved" });
     }
   }, [user]);
 
