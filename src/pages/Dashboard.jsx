@@ -66,6 +66,17 @@ export default function Dashboard() {
     enabled: !!user,
   });
 
+  const { data: allUsers = [] } = useQuery({
+    queryKey: ["all-users"],
+    queryFn: () => base44.entities.User.list(),
+    enabled: !!user && isAdmin,
+    refetchInterval: 60000,
+  });
+
+  const pendingCount = isAdmin
+    ? allUsers.filter(u => !u.status || u.status === "pending").length
+    : 0;
+
   const completeTask = useMutation({
     mutationFn: (task) => base44.entities.Task.update(task.id, { status: "completed" }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["tasks"] }),
