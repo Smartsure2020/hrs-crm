@@ -21,6 +21,7 @@ const STATUS_COLORS = {
 export default function UserManagement() {
   const [user, setUser] = useState(null);
   const [statusFilter, setStatusFilter] = useState("all");
+  const [showInvite, setShowInvite] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
