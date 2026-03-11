@@ -4,8 +4,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import {
   Users, Briefcase, Shield, CheckSquare, Send,
-  Clock, AlertTriangle, Plus, RefreshCw
+  Clock, AlertTriangle, Plus, RefreshCw, UserCog
 } from "lucide-react";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 import moment from "moment";
 
 import StatCard from "@/components/dashboard/StatCard";
