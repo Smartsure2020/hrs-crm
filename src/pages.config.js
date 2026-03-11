@@ -55,6 +55,7 @@ import Pipeline from './pages/Pipeline';
 import Policies from './pages/Policies';
 import Reports from './pages/Reports';
 import Tasks from './pages/Tasks';
+import UserManagement from './pages/UserManagement';
 import __Layout from './Layout.jsx';
 
 
@@ -67,6 +68,7 @@ export const PAGES = {
     "Policies": Policies,
     "Reports": Reports,
     "Tasks": Tasks,
+    "UserManagement": UserManagement,
 }
 
 export const pagesConfig = {
