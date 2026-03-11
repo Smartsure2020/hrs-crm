@@ -62,23 +62,7 @@ export default function ClientProfile() {
     enabled: !!clientId,
   });
 
-  const handleUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setUploading(true);
-    const { file_url } = await base44.integrations.Core.UploadFile({ file });
-    await base44.entities.Document.create({
-      name: file.name,
-      file_url,
-      client_id: clientId,
-      client_name: client?.client_name,
-      document_type: "other",
-      uploaded_by: user?.email,
-      version: 1
-    });
-    queryClient.invalidateQueries({ queryKey: ["client-docs"] });
-    setUploading(false);
-  };
+
 
   if (!client) {
     return <div className="flex items-center justify-center h-full"><RefreshCw className="w-5 h-5 animate-spin text-gray-400" /></div>;
