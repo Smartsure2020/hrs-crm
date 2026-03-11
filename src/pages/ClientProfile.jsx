@@ -25,7 +25,6 @@ export default function ClientProfile() {
   const clientId = params.get("id");
   const [user, setUser] = useState(null);
   const [showEdit, setShowEdit] = useState(false);
-  const [uploading, setUploading] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
