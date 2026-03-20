@@ -78,12 +78,14 @@ export default function ClientDocuments({ documents, clientId, clientName, user 
       file_url,
       client_id: clientId,
       client_name: clientName,
+      folder: selectedFolder,
       document_type: selectedType,
       uploaded_by: user?.email,
       version: 1,
     });
     queryClient.invalidateQueries({ queryKey: ["client-docs"] });
     setUploading(false);
+    setSelectedFolder("general");
     setSelectedType("other");
   };
 
