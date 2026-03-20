@@ -10,26 +10,45 @@ import {
 } from "lucide-react";
 import moment from "moment";
 
-const DOC_TYPES = [
-  { value: "policy_schedule", label: "Policy Schedule" },
-  { value: "quote",           label: "Quote" },
-  { value: "claim",           label: "Claim" },
-  { value: "compliance",      label: "Compliance" },
-  { value: "id_copy",         label: "ID Copy" },
-  { value: "proof_of_address",label: "Proof of Address" },
-  { value: "bank_statement",  label: "Bank Statement" },
-  { value: "other",           label: "Other" },
+const FOLDERS = [
+  { value: "kyc",               label: "KYC" },
+  { value: "compliance",        label: "Compliance" },
+  { value: "current_policies",  label: "Current Policies" },
+  { value: "previous_policies", label: "Previous Policies" },
+  { value: "renewals",          label: "Renewals" },
+  { value: "current_claims",    label: "Current Claims" },
+  { value: "previous_claims",   label: "Previous Claims" },
+  { value: "correspondence",    label: "Correspondence" },
+  { value: "general",           label: "General" },
 ];
 
-const TYPE_COLORS = {
-  policy_schedule: "bg-blue-100 text-blue-700",
-  quote:           "bg-purple-100 text-purple-700",
-  claim:           "bg-red-100 text-red-700",
-  compliance:      "bg-yellow-100 text-yellow-700",
-  id_copy:         "bg-teal-100 text-teal-700",
-  proof_of_address:"bg-green-100 text-green-700",
-  bank_statement:  "bg-indigo-100 text-indigo-700",
-  other:           "bg-gray-100 text-gray-600",
+const DOC_TYPES = [
+  { value: "fica_docs",            label: "FICA Docs",             folder: "kyc" },
+  { value: "broker_appointment",   label: "Broker Appointment",    folder: "compliance" },
+  { value: "roa",                  label: "ROA",                   folder: "compliance" },
+  { value: "disclosure",           label: "Disclosure",            folder: "compliance" },
+  { value: "debit_order_authority",label: "Debit Order Authority", folder: "compliance" },
+  { value: "fee_consent_form",     label: "Fee Consent Form",      folder: "compliance" },
+  { value: "policy_schedule",      label: "Policy Schedule",       folder: "current_policies" },
+  { value: "quote",                label: "Quote",                 folder: "current_policies" },
+  { value: "claim",                label: "Claim",                 folder: "current_claims" },
+  { value: "id_copy",              label: "ID Copy",               folder: "kyc" },
+  { value: "proof_of_address",     label: "Proof of Address",      folder: "kyc" },
+  { value: "bank_statement",       label: "Bank Statement",        folder: "kyc" },
+  { value: "correspondence",       label: "Correspondence",        folder: "correspondence" },
+  { value: "other",                label: "Other",                 folder: "general" },
+];
+
+const FOLDER_COLORS = {
+  kyc:               "bg-teal-100 text-teal-700",
+  compliance:        "bg-yellow-100 text-yellow-700",
+  current_policies:  "bg-blue-100 text-blue-700",
+  previous_policies: "bg-indigo-100 text-indigo-700",
+  renewals:          "bg-purple-100 text-purple-700",
+  current_claims:    "bg-red-100 text-red-700",
+  previous_claims:   "bg-orange-100 text-orange-700",
+  correspondence:    "bg-pink-100 text-pink-700",
+  general:           "bg-gray-100 text-gray-600",
 };
 
 const FileIcon = ({ name }) => {
