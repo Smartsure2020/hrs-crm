@@ -123,6 +123,16 @@ export default function ClientDocuments({ documents, clientId, clientName, user 
         <p className="text-xs text-gray-400 mb-4">PDF, Word, Excel, or image files</p>
 
         <div className="flex items-center justify-center gap-3 flex-wrap">
+          <Select value={selectedFolder} onValueChange={setSelectedFolder}>
+            <SelectTrigger className="w-44 h-8 text-xs bg-white">
+              <SelectValue placeholder="Folder" />
+            </SelectTrigger>
+            <SelectContent>
+              {FOLDERS.map(f => (
+                <SelectItem key={f.value} value={f.value} className="text-xs">{f.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Select value={selectedType} onValueChange={setSelectedType}>
             <SelectTrigger className="w-44 h-8 text-xs bg-white">
               <SelectValue placeholder="Document type" />
