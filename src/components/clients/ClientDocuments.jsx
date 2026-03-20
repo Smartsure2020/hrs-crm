@@ -64,6 +64,7 @@ export default function ClientDocuments({ documents, clientId, clientName, user 
   const queryClient = useQueryClient();
   const fileInputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
+  const [selectedFolder, setSelectedFolder] = useState("general");
   const [selectedType, setSelectedType] = useState("other");
   const [deletingId, setDeletingId] = useState(null);
   const [dragOver, setDragOver] = useState(false);
