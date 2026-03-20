@@ -180,7 +180,12 @@ export default function ClientDocuments({ documents, clientId, clientName, user 
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-800 truncate">{doc.name}</p>
                 <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                  <Badge className={`text-[10px] px-1.5 py-0 ${TYPE_COLORS[doc.document_type] || TYPE_COLORS.other}`}>
+                  {doc.folder && (
+                    <Badge className={`text-[10px] px-1.5 py-0 ${FOLDER_COLORS[doc.folder] || FOLDER_COLORS.general}`}>
+                      {FOLDERS.find(f => f.value === doc.folder)?.label || doc.folder}
+                    </Badge>
+                  )}
+                  <Badge className="text-[10px] px-1.5 py-0 bg-gray-100 text-gray-600">
                     {DOC_TYPES.find(t => t.value === doc.document_type)?.label || "Other"}
                   </Badge>
                   <span className="text-[10px] text-gray-400">
