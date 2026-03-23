@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Trash2 } from "lucide-react";
 
-const POLICY_TYPES = ["motor","household","commercial","liability","life","health","marine","engineering","crop","other"];
+const POLICY_TYPES = ["personal", "commercial"];
 const STAGES = [
   { value: "lead_received", label: "Lead Received" },
   { value: "contacted", label: "Contacted" },
