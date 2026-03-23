@@ -133,6 +133,9 @@ export default function Pipeline() {
   };
 
   const handleAddRow = async () => {
+    await base44.entities.Deal.create({ client_name: "", stage: stageFilter !== "all" ? stageFilter : "lead", assigned_broker: user?.email, broker_name: user?.full_name });
+    queryClient.invalidateQueries({ queryKey: ["deals"] });
+  };
 
   // ── cell renderers ────────────────────────────────────────────
   const isEdit = (id, field) => editingCell?.id === id && editingCell?.field === field;
