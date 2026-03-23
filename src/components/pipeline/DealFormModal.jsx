@@ -48,7 +48,13 @@ export default function DealFormModal({ open, onClose, onSuccess, user, deal, cl
 
   const handleClientSelect = (clientId) => {
     const client = clients?.find(c => c.id === clientId);
-    setForm({ ...form, client_id: clientId, client_name: client?.client_name || "" });
+    setForm({
+      ...form,
+      client_id: clientId,
+      client_name: client?.client_name || "",
+      contact_phone: client?.phone || form.contact_phone || "",
+      contact_email: client?.email || form.contact_email || "",
+    });
   };
 
   const handleSubmit = async () => {
@@ -101,6 +107,14 @@ export default function DealFormModal({ open, onClose, onSuccess, user, deal, cl
               ) : (
                 <Input value={form.client_name} onChange={e => setForm({...form, client_name: e.target.value})} placeholder="Client name" />
               )}
+            </div>
+            <div>
+              <Label className="text-xs text-gray-500">Contact Phone</Label>
+              <Input value={form.contact_phone || ""} onChange={e => setForm({...form, contact_phone: e.target.value})} placeholder="Phone number" />
+            </div>
+            <div>
+              <Label className="text-xs text-gray-500">Contact Email</Label>
+              <Input value={form.contact_email || ""} onChange={e => setForm({...form, contact_email: e.target.value})} placeholder="Email address" />
             </div>
             <div>
               <Label className="text-xs text-gray-500">Policy Type</Label>
