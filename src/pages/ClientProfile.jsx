@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -9,11 +9,12 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ArrowLeft, Mail, Phone, MapPin, Building2, Edit2,
-  Shield, Briefcase, FileText, CheckSquare, RefreshCw
+  Shield, Briefcase, FileText, CheckSquare, RefreshCw, Plus
 } from "lucide-react";
 import ClientDocuments from "@/components/clients/ClientDocuments";
 import moment from "moment";
 import ClientFormModal from "@/components/clients/ClientFormModal";
+import DealFormModal from "@/components/pipeline/DealFormModal";
 
 const TYPE_LABELS = {
   personal: "Personal", commercial: "Commercial",
@@ -23,8 +24,10 @@ const TYPE_LABELS = {
 export default function ClientProfile() {
   const params = new URLSearchParams(window.location.search);
   const clientId = params.get("id");
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [showEdit, setShowEdit] = useState(false);
+  const [showDeal, setShowDeal] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -134,7 +137,13 @@ export default function ClientProfile() {
 
         <TabsContent value="deals">
           <Card className="border-0 shadow-sm">
-            <CardContent className="p-0">
+            <div className="flex items-center justify-between px-4 pt-4">
+              <p className="text-sm font-medium text-gray-700">{deals.length} deal{deals.length !== 1 ? 's' : ''}</p>
+              <Button size="sm" className="bg-[#1a2744] hover:bg-[#243556] h-7 text-xs" onClick={() => setShowDeal(true)}>
+                <Plus className="w-3.5 h-3.5 mr-1" /> New Deal
+              </Button>
+            </div>
+            <CardContent className="p-0 mt-3">
               {deals.length === 0 ? (
                 <div className="text-center py-12 text-gray-400"><Briefcase className="w-8 h-8 mx-auto mb-2 opacity-30" />No deals yet</div>
               ) : (
@@ -223,6 +232,17 @@ export default function ClientProfile() {
         onSuccess={() => queryClient.invalidateQueries({ queryKey: ["client"] })}
         user={user}
         client={client}
+      />
+      <DealFormModal
+        open={showDeal}
+        onClose={() => setShowDeal(false)}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ["client-deals", clientId] });
+          navigate(createPageUrl("Pipeline"));
+        }}
+        user={user}
+        clients={[client]}
+        deal={null}
       />
     </div>
   );
