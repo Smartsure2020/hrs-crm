@@ -345,6 +345,9 @@ export default function Pipeline() {
                     className="mt-1 flex-shrink-0 accent-[#1a2744] cursor-pointer"
                   />
                   <div className="w-full">
+                    <TextCell deal={deal} field="client_name" placeholder="Client name…" />
+                  </div>
+                </div>
 
                 {/* Contact Details */}
                 <div className="px-4 py-3 border-l border-gray-100">
