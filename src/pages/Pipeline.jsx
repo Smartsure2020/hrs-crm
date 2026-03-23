@@ -3,7 +3,8 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
-import { ChevronDown, Plus, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ChevronDown, Plus, RefreshCw, Trash2, MoveRight, X } from "lucide-react";
 
 const STAGES = [
   { value: "lead",       label: "Lead",                  color: "bg-blue-100 text-blue-700" },
@@ -30,8 +31,10 @@ const COL_WIDTHS = "grid-cols-[2fr_1.5fr_1.7fr_3fr_1.2fr]";
 export default function Pipeline() {
   const [user, setUser]           = useState(null);
   const [stageFilter, setStageFilter] = useState("all");
-  const [editingCell, setEditingCell] = useState(null); // { id, field }
+  const [editingCell, setEditingCell] = useState(null);
   const [pending, setPending]     = useState({});
+  const [selected, setSelected]   = useState(new Set());
+  const [bulkStage, setBulkStage] = useState("");
   const queryClient               = useQueryClient();
 
   useEffect(() => {
@@ -106,14 +109,30 @@ export default function Pipeline() {
     queryClient.invalidateQueries({ queryKey: ["deals"] });
   };
 
-  const handleAddRow = async () => {
-    const d = await base44.entities.Deal.create({
-      client_name: "", policy_type: "other", stage: "lead",
-      assigned_broker: user?.email, broker_name: user?.full_name, estimated_premium: 0,
+  const toggleSelect = (id) => {
+    setSelected(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
     });
-    queryClient.invalidateQueries({ queryKey: ["deals"] });
-    setTimeout(() => startEdit(d.id, "client_name", ""), 350);
   };
+
+  const clearSelection = () => setSelected(new Set());
+
+  const handleBulkDelete = async () => {
+    if (!window.confirm(`Delete ${selected.size} deal(s)?`)) return;
+    await Promise.all([...selected].map(id => base44.entities.Deal.delete(id)));
+    queryClient.invalidateQueries({ queryKey: ["deals"] });
+    clearSelection();
+  };
+
+  const handleBulkMove = async (stage) => {
+    await Promise.all([...selected].map(id => base44.entities.Deal.update(id, { stage })));
+    queryClient.invalidateQueries({ queryKey: ["deals"] });
+    clearSelection();
+  };
+
+  const handleAddRow = async () => {
 
   // ── cell renderers ────────────────────────────────────────────
   const isEdit = (id, field) => editingCell?.id === id && editingCell?.field === field;
@@ -255,13 +274,36 @@ export default function Pipeline() {
         </div>
       </div>
 
+      {/* ── Bulk Action Bar ── */}
+      {selected.size > 0 && (
+        <div className="flex items-center gap-3 bg-[#1a2744] text-white px-4 py-2.5 rounded-xl">
+          <span className="text-sm font-medium">{selected.size} selected</span>
+          <div className="flex items-center gap-2 ml-auto">
+            <Select onValueChange={handleBulkMove}>
+              <SelectTrigger className="h-8 text-xs bg-white/10 border-white/20 text-white w-44">
+                <span className="flex items-center gap-1.5"><MoveRight className="w-3.5 h-3.5" />Move to stage...</span>
+              </SelectTrigger>
+              <SelectContent>
+                {STAGES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Button size="sm" variant="ghost" onClick={handleBulkDelete} className="h-8 text-red-300 hover:text-red-200 hover:bg-red-500/20">
+              <Trash2 className="w-3.5 h-3.5 mr-1" /> Delete
+            </Button>
+            <Button size="sm" variant="ghost" onClick={clearSelection} className="h-8 text-white/60 hover:text-white hover:bg-white/10">
+              <X className="w-3.5 h-3.5" />
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* ── Table ── */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
 
         {/* Column headers */}
         <div className={`grid ${COL_WIDTHS} border-b border-gray-200 bg-gray-50/80`}>
           {["Name", "Contact Details", "Stage", "Notes", "Est. Value (R)"].map((col, i) => (
-            <div key={i} className={`px-4 py-2.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wider ${i > 0 ? "border-l border-gray-100" : ""}`}>
+            <div key={i} className={`px-4 py-2.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wider ${i > 0 ? "border-l border-gray-100" : "pl-10"}`}>
               {col}
             </div>
           ))}
@@ -284,20 +326,25 @@ export default function Pipeline() {
           {filteredDeals.map(deal => {
             const stageConf = getStageConf(deal._stage);
             const isActive = editingCell?.id === deal.id;
+            const isSelected = selected.has(deal.id);
 
             return (
               <div
                 key={deal.id}
                 className={`grid ${COL_WIDTHS} transition-colors duration-100 ${
-                  isActive ? "bg-blue-50/30" : "hover:bg-gray-50/70"
+                  isSelected ? "bg-blue-50" : isActive ? "bg-blue-50/30" : "hover:bg-gray-50/70"
                 }`}
               >
                 {/* Name */}
-                <div className="px-4 py-3 flex items-start">
+                <div className="px-4 py-3 flex items-start gap-2">
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() => toggleSelect(deal.id)}
+                    onClick={e => e.stopPropagation()}
+                    className="mt-1 flex-shrink-0 accent-[#1a2744] cursor-pointer"
+                  />
                   <div className="w-full">
-                    <TextCell deal={deal} field="client_name" placeholder="Client name…" />
-                  </div>
-                </div>
 
                 {/* Contact Details */}
                 <div className="px-4 py-3 border-l border-gray-100">
