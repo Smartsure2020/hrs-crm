@@ -10,14 +10,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2 } from "lucide-react";
 
-const POLICY_TYPES = ["motor","household","commercial","liability","life","health","marine","engineering","crop","other"];
+const POLICY_TYPES = ["personal", "commercial"];
 const CLIENT_TYPES = ["personal","commercial","body_corporate","motor_trader"];
 
 export default function QuickAddLeadModal({ open, onClose, onSuccess, user }) {
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     client_name: "", company_name: "", email: "", phone: "",
-    client_type: "personal", policy_type: "motor", estimated_premium: "",
+    client_type: "personal", policy_type: "personal", estimated_premium: "",
     notes: ""
   });
 
@@ -53,7 +53,7 @@ export default function QuickAddLeadModal({ open, onClose, onSuccess, user }) {
       user_name: user?.full_name
     });
     setLoading(false);
-    setForm({ client_name: "", company_name: "", email: "", phone: "", client_type: "personal", policy_type: "motor", estimated_premium: "", notes: "" });
+    setForm({ client_name: "", company_name: "", email: "", phone: "", client_type: "personal", policy_type: "personal", estimated_premium: "", notes: "" });
     onSuccess?.();
     onClose();
   };
