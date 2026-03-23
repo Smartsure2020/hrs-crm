@@ -28,6 +28,7 @@ export default function ClientProfile() {
   const [user, setUser] = useState(null);
   const [showEdit, setShowEdit] = useState(false);
   const [showDeal, setShowDeal] = useState(false);
+  const [editDeal, setEditDeal] = useState(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -149,7 +150,7 @@ export default function ClientProfile() {
               ) : (
                 <div className="divide-y">
                   {deals.map(deal => (
-                    <div key={deal.id} className="p-4 hover:bg-gray-50 transition-colors">
+                    <div key={deal.id} className="p-4 hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => { setEditDeal(deal); setShowDeal(true); }}>
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="font-medium text-sm">{deal.policy_type?.replace(/_/g," ").replace(/\b\w/g,l=>l.toUpperCase())}</p>
@@ -235,14 +236,14 @@ export default function ClientProfile() {
       />
       <DealFormModal
         open={showDeal}
-        onClose={() => setShowDeal(false)}
+        onClose={() => { setShowDeal(false); setEditDeal(null); }}
         onSuccess={() => {
           queryClient.invalidateQueries({ queryKey: ["client-deals", clientId] });
-          navigate(createPageUrl("Pipeline"));
+          if (!editDeal) navigate(createPageUrl("Pipeline"));
         }}
         user={user}
         clients={[client]}
-        deal={null}
+        deal={editDeal}
       />
     </div>
   );
