@@ -198,17 +198,28 @@ export default function Pipeline() {
 
   const NotesCell = ({ deal }) => {
     const val = deal.notes || "";
-    return isEdit(deal.id, "notes") ? (
-      <textarea autoFocus
-        value={getPending(deal.id, "notes", val)}
-        onChange={e => setPending(p => ({ ...p, [key(deal.id, "notes")]: e.target.value }))}
-        onBlur={() => saveField(deal.id, "notes")}
-        onKeyDown={e => { if (e.key === "Escape") setEditingCell(null); }}
-        className="w-full text-sm border border-[#1a2744]/25 rounded p-1.5 resize-none focus:outline-none focus:ring-1 focus:ring-[#1a2744]/20 min-h-[64px]"
-        rows={3}
-      />
-    ) : (
-      <div onClick={() => startEdit(deal.id, "notes", val)}
+    const [localVal, setLocalVal] = React.useState(val);
+
+    React.useEffect(() => { setLocalVal(val); }, [val]);
+
+    if (isEdit(deal.id, "notes")) {
+      return (
+        <textarea
+          autoFocus
+          value={localVal}
+          onChange={e => {
+            setLocalVal(e.target.value);
+            setPending(p => ({ ...p, [key(deal.id, "notes")]: e.target.value }));
+          }}
+          onBlur={() => saveField(deal.id, "notes")}
+          onKeyDown={e => { if (e.key === "Escape") setEditingCell(null); }}
+          className="w-full text-sm border border-[#1a2744]/25 rounded p-1.5 resize-none focus:outline-none focus:ring-1 focus:ring-[#1a2744]/20 min-h-[64px]"
+          rows={3}
+        />
+      );
+    }
+    return (
+      <div onClick={() => { setLocalVal(val); startEdit(deal.id, "notes", val); }}
         className="cursor-text min-h-[26px] text-sm text-gray-600 hover:bg-[#1a2744]/5 rounded px-1.5 py-0.5 -mx-1.5 transition-colors leading-snug"
         style={{ display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
         {val || <span className="text-gray-300 text-xs italic">Add notes…</span>}
