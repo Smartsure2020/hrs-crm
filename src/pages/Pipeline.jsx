@@ -15,6 +15,38 @@ const STAGES = [
   { value: "lost",       label: "Lost",                  color: "bg-red-100 text-red-500" },
 ];
 
+// ── NotesCell (must be outside Pipeline to avoid remount on every render) ──
+function NotesCell({ deal, isEditing, getPending, setPending, keyFn, saveField, setEditingCell, startEdit }) {
+  const val = deal.notes || "";
+  const [localVal, setLocalVal] = React.useState(getPending(deal.id, "notes") !== undefined && isEditing ? getPending(deal.id, "notes") : val);
+
+  if (isEditing) {
+    return (
+      <textarea
+        autoFocus
+        value={localVal}
+        onChange={e => {
+          setLocalVal(e.target.value);
+          setPending(p => ({ ...p, [keyFn(deal.id, "notes")]: e.target.value }));
+        }}
+        onBlur={() => saveField(deal.id, "notes")}
+        onKeyDown={e => { if (e.key === "Escape") setEditingCell(null); }}
+        className="w-full text-sm border border-[#1a2744]/25 rounded p-1.5 resize-none focus:outline-none focus:ring-1 focus:ring-[#1a2744]/20 min-h-[64px]"
+        rows={3}
+      />
+    );
+  }
+  return (
+    <div
+      onClick={() => { setLocalVal(val); startEdit(deal.id, "notes", val); }}
+      className="cursor-text min-h-[26px] text-sm text-gray-600 hover:bg-[#1a2744]/5 rounded px-1.5 py-0.5 -mx-1.5 transition-colors leading-snug"
+      style={{ display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}
+    >
+      {val || <span className="text-gray-300 text-xs italic">Add notes…</span>}
+    </div>
+  );
+}
+
 // Legacy stage values from older data
 const LEGACY_MAP = {
   lead_received: "lead", contacted: "lead",
@@ -196,37 +228,6 @@ export default function Pipeline() {
     );
   };
 
-  const NotesCell = ({ deal }) => {
-    const val = deal.notes || "";
-    const [localVal, setLocalVal] = React.useState(val);
-
-    React.useEffect(() => { setLocalVal(val); }, [val]);
-
-    if (isEdit(deal.id, "notes")) {
-      return (
-        <textarea
-          autoFocus
-          value={localVal}
-          onChange={e => {
-            setLocalVal(e.target.value);
-            setPending(p => ({ ...p, [key(deal.id, "notes")]: e.target.value }));
-          }}
-          onBlur={() => saveField(deal.id, "notes")}
-          onKeyDown={e => { if (e.key === "Escape") setEditingCell(null); }}
-          className="w-full text-sm border border-[#1a2744]/25 rounded p-1.5 resize-none focus:outline-none focus:ring-1 focus:ring-[#1a2744]/20 min-h-[64px]"
-          rows={3}
-        />
-      );
-    }
-    return (
-      <div onClick={() => { setLocalVal(val); startEdit(deal.id, "notes", val); }}
-        className="cursor-text min-h-[26px] text-sm text-gray-600 hover:bg-[#1a2744]/5 rounded px-1.5 py-0.5 -mx-1.5 transition-colors leading-snug"
-        style={{ display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
-        {val || <span className="text-gray-300 text-xs italic">Add notes…</span>}
-      </div>
-    );
-  };
-
   const ValueCell = ({ deal }) => {
     const val = deal.estimated_premium ?? 0;
     return isEdit(deal.id, "estimated_premium") ? (
@@ -391,7 +392,16 @@ export default function Pipeline() {
 
                 {/* Notes */}
                 <div className="px-4 py-3 border-l border-gray-100">
-                  <NotesCell deal={deal} />
+                  <NotesCell
+                    deal={deal}
+                    isEditing={editingCell?.id === deal.id && editingCell?.field === "notes"}
+                    getPending={getPending}
+                    setPending={setPending}
+                    keyFn={key}
+                    saveField={saveField}
+                    setEditingCell={setEditingCell}
+                    startEdit={startEdit}
+                  />
                 </div>
 
                 {/* Estimated Value */}
