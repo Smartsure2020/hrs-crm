@@ -149,7 +149,7 @@ export default function Dashboard() {
       {/* Stats */}
       {isAdminStaff ? (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard title="Total Clients" value={clients.length} icon={Users} color="blue" />
+          <StatCard title="Active Clients" value={clients.filter(c => c.status === "active").length} icon={Users} color="blue" />
           <StatCard title="Policies" value={policies.length} icon={Shield} color="green" />
           <StatCard title="Renewals Due" value={renewalsDue} icon={Clock} color="orange" />
           <StatCard title="Documents" value={documents.length} icon={Briefcase} color="purple" />
