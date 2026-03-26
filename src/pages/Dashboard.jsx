@@ -25,7 +25,8 @@ export default function Dashboard() {
   }, []);
 
   const isAdmin = user?.role === "admin";
-  const brokerFilter = isAdmin ? {} : { assigned_broker: user?.email };
+  const isAdminStaff = user?.role === "admin_staff";
+  const brokerFilter = isAdmin || isAdminStaff ? {} : { assigned_broker: user?.email };
   const taskFilter = isAdmin ? {} : { assigned_to: user?.email };
 
   const { data: clients = [] } = useQuery({
@@ -41,7 +42,13 @@ export default function Dashboard() {
     queryFn: () => isAdmin
       ? base44.entities.Deal.list()
       : base44.entities.Deal.filter(brokerFilter),
-    enabled: !!user,
+    enabled: !!user && !isAdminStaff,
+  });
+
+  const { data: documents = [] } = useQuery({
+    queryKey: ["documents-dash"],
+    queryFn: () => base44.entities.Document.list("-created_date", 5),
+    enabled: !!user && isAdminStaff,
   });
 
   const { data: tasks = [] } = useQuery({
@@ -115,9 +122,11 @@ export default function Dashboard() {
           </h2>
           <p className="text-sm text-gray-400 mt-0.5">{moment().format("dddd, MMMM D, YYYY")}</p>
         </div>
-        <Button onClick={() => setShowAddLead(true)} className="bg-[#1a2744] hover:bg-[#243556]">
-          <Plus className="w-4 h-4 mr-2" /> Add Lead
-        </Button>
+        {!isAdminStaff && (
+          <Button onClick={() => setShowAddLead(true)} className="bg-[#1a2744] hover:bg-[#243556]">
+            <Plus className="w-4 h-4 mr-2" /> Add Lead
+          </Button>
+        )}
       </div>
 
       {/* Pending users alert for admin */}
@@ -138,14 +147,23 @@ export default function Dashboard() {
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-        <StatCard title="Total Leads" value={totalLeads} icon={Users} color="blue" />
-        <StatCard title="Quotes Sent" value={quotesSent} icon={Send} color="purple" />
-        <StatCard title="Policies Bound" value={policyBound} icon={Shield} color="green" />
-        <StatCard title="Renewals Due" value={renewalsDue} icon={Clock} color="orange" />
-        <StatCard title="Due Today" value={tasksDueToday} icon={CheckSquare} color="cyan" />
-        <StatCard title="Overdue" value={tasksOverdue} icon={AlertTriangle} color="red" />
-      </div>
+      {isAdminStaff ? (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard title="Total Clients" value={clients.length} icon={Users} color="blue" />
+          <StatCard title="Policies" value={policies.length} icon={Shield} color="green" />
+          <StatCard title="Renewals Due" value={renewalsDue} icon={Clock} color="orange" />
+          <StatCard title="Documents" value={documents.length} icon={Briefcase} color="purple" />
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+          <StatCard title="Total Leads" value={totalLeads} icon={Users} color="blue" />
+          <StatCard title="Quotes Sent" value={quotesSent} icon={Send} color="purple" />
+          <StatCard title="Policies Bound" value={policyBound} icon={Shield} color="green" />
+          <StatCard title="Renewals Due" value={renewalsDue} icon={Clock} color="orange" />
+          <StatCard title="Due Today" value={tasksDueToday} icon={CheckSquare} color="cyan" />
+          <StatCard title="Overdue" value={tasksOverdue} icon={AlertTriangle} color="red" />
+        </div>
+      )}
 
       {/* Bottom row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

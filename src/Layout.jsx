@@ -20,6 +20,13 @@ const BROKER_NAV = [
   { name: "Reports",    icon: BarChart3,         page: "Reports" },
 ];
 
+const ADMIN_STAFF_NAV = [
+  { name: "Dashboard",  icon: LayoutDashboard, page: "Dashboard" },
+  { name: "Clients",    icon: Users,            page: "Clients" },
+  { name: "Policies",   icon: Shield,           page: "Policies" },
+  { name: "Documents",  icon: FileText,         page: "Documents" },
+];
+
 const ADMIN_EXTRA = { name: "Users", icon: UserCog, page: "UserManagement" };
 
 export default function Layout({ children, currentPageName }) {
@@ -62,9 +69,13 @@ export default function Layout({ children, currentPageName }) {
   }
 
   const isAdmin = user?.role === "admin";
-  const pendingUsers = []; // we'll only show badge on nav if needed
+  const isAdminStaff = user?.role === "admin_staff";
 
-  const navItems = isAdmin ? [...BROKER_NAV, ADMIN_EXTRA] : BROKER_NAV;
+  const navItems = isAdmin
+    ? [...BROKER_NAV, ADMIN_EXTRA]
+    : isAdminStaff
+    ? ADMIN_STAFF_NAV
+    : BROKER_NAV;
 
   return (
     <div className="flex h-screen bg-[#f8f9fb] overflow-hidden">

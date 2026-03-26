@@ -252,6 +252,12 @@ export default function Pipeline() {
     </div>
   );
 
+  if (user?.role === "admin_staff") return (
+    <div className="flex items-center justify-center h-full">
+      <p className="text-gray-400">Access denied. Pipeline is not available for your role.</p>
+    </div>
+  );
+
   return (
     <div className="p-4 lg:p-6 space-y-5">
       {/* ── Header ── */}

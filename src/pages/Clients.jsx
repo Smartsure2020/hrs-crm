@@ -40,10 +40,12 @@ export default function Clients() {
   }, []);
 
   const isAdmin = user?.role === "admin";
+  const isAdminStaff = user?.role === "admin_staff";
+  const canSeeAll = isAdmin || isAdminStaff;
 
   const { data: clients = [], isLoading } = useQuery({
     queryKey: ["clients", user?.email],
-    queryFn: () => isAdmin
+    queryFn: () => canSeeAll
       ? base44.entities.Client.list("-created_date", 500)
       : base44.entities.Client.filter({ assigned_broker: user?.email }, "-created_date", 500),
     enabled: !!user,
@@ -52,7 +54,7 @@ export default function Clients() {
   const { data: brokers = [] } = useQuery({
     queryKey: ["brokers"],
     queryFn: () => base44.entities.User.list(),
-    enabled: !!user && isAdmin,
+    enabled: !!user && canSeeAll,
   });
 
   const filtered = clients.filter(c => {
@@ -110,7 +112,7 @@ export default function Clients() {
               <SelectItem value="inactive">Inactive</SelectItem>
             </SelectContent>
           </Select>
-          {isAdmin && (
+          {canSeeAll && (
             <Select value={brokerFilter} onValueChange={setBrokerFilter}>
               <SelectTrigger className="w-[160px]"><SelectValue placeholder="Broker" /></SelectTrigger>
               <SelectContent>

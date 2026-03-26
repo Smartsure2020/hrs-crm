@@ -181,6 +181,7 @@ export default function UserManagement() {
                           <SelectContent>
                             <SelectItem value="admin">Admin</SelectItem>
                             <SelectItem value="broker">Broker</SelectItem>
+                            <SelectItem value="admin_staff">Admin Staff</SelectItem>
                           </SelectContent>
                         </Select>
                       )}
