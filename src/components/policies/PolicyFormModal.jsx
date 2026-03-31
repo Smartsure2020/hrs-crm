@@ -62,7 +62,13 @@ export default function PolicyFormModal({ open, onClose, onSuccess, user, policy
     // Upload pending document
     if (pendingFile && policyId) {
       setUploadingDoc(true);
-      const { file_url } = await base44.integrations.Core.UploadFile({ file: pendingFile });
+      const base64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(pendingFile);
+      });
+      const { file_url } = await base44.integrations.Core.UploadFile({ file: base64 });
       await base44.entities.Document.create({
         name: docName || pendingFile.name,
         file_url,
