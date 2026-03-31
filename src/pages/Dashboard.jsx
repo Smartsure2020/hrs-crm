@@ -11,7 +11,7 @@ import { createPageUrl } from "@/utils";
 import moment from "moment";
 
 import StatCard from "@/components/dashboard/StatCard";
-import CommissionSplitSection from "@/components/admin/CommissionSplitSection";
+
 import ActivityFeed from "@/components/dashboard/ActivityFeed";
 import UpcomingTasks from "@/components/dashboard/UpcomingTasks";
 import QuickAddLeadModal from "@/components/shared/QuickAddLeadModal";
@@ -166,8 +166,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Commission Split for admin staff */}
-      {isAdminStaff && <CommissionSplitSection />}
+
 
       {/* Bottom row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
