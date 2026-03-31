@@ -15,6 +15,7 @@ import ClientDocuments from "@/components/clients/ClientDocuments";
 import moment from "moment";
 import ClientFormModal from "@/components/clients/ClientFormModal";
 import DealFormModal from "@/components/pipeline/DealFormModal";
+import PolicyFormModal from "@/components/policies/PolicyFormModal";
 
 const TYPE_LABELS = {
   personal: "Personal", commercial: "Commercial",
@@ -29,6 +30,8 @@ export default function ClientProfile() {
   const [showEdit, setShowEdit] = useState(false);
   const [showDeal, setShowDeal] = useState(false);
   const [editDeal, setEditDeal] = useState(null);
+  const [showPolicy, setShowPolicy] = useState(false);
+  const [editPolicy, setEditPolicy] = useState(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -168,13 +171,19 @@ export default function ClientProfile() {
 
         <TabsContent value="policies">
           <Card className="border-0 shadow-sm">
-            <CardContent className="p-0">
+            <div className="flex items-center justify-between px-4 pt-4">
+              <p className="text-sm font-medium text-gray-700">{policies.length} polic{policies.length !== 1 ? 'ies' : 'y'}</p>
+              <Button size="sm" className="bg-[#1a2744] hover:bg-[#243556] h-7 text-xs" onClick={() => { setEditPolicy(null); setShowPolicy(true); }}>
+                <Plus className="w-3.5 h-3.5 mr-1" /> New Policy
+              </Button>
+            </div>
+            <CardContent className="p-0 mt-3">
               {policies.length === 0 ? (
                 <div className="text-center py-12 text-gray-400"><Shield className="w-8 h-8 mx-auto mb-2 opacity-30" />No policies yet</div>
               ) : (
                 <div className="divide-y">
                   {policies.map(policy => (
-                    <div key={policy.id} className="p-4 hover:bg-gray-50 transition-colors">
+                    <div key={policy.id} className="p-4 hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => { setEditPolicy(policy); setShowPolicy(true); }}>
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="font-medium text-sm">{policy.policy_number} — {policy.insurer}</p>
@@ -244,6 +253,16 @@ export default function ClientProfile() {
         user={user}
         clients={[client]}
         deal={editDeal}
+      />
+      <PolicyFormModal
+        open={showPolicy}
+        onClose={() => { setShowPolicy(false); setEditPolicy(null); }}
+        onSuccess={() => queryClient.invalidateQueries({ queryKey: ["client-policies", clientId] })}
+        user={user}
+        policy={editPolicy}
+        clients={[client]}
+        defaultClientId={clientId}
+        defaultClientName={client?.client_name}
       />
     </div>
   );

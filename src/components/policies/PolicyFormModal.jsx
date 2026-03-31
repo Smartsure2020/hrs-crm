@@ -12,7 +12,7 @@ import { Loader2, Trash2 } from "lucide-react";
 
 const POLICY_TYPES = ["motor","household","commercial","liability","life","health","marine","engineering","crop","other"];
 
-export default function PolicyFormModal({ open, onClose, onSuccess, user, policy, clients }) {
+export default function PolicyFormModal({ open, onClose, onSuccess, user, policy, clients, defaultClientId, defaultClientName }) {
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     policy_number: "", client_id: "", client_name: "", insurer: "",
@@ -26,7 +26,7 @@ export default function PolicyFormModal({ open, onClose, onSuccess, user, policy
       setForm({ ...policy, premium: policy.premium || "", start_date: policy.start_date || "", renewal_date: policy.renewal_date || "" });
     } else {
       setForm({
-        policy_number: "", client_id: "", client_name: "", insurer: "",
+        policy_number: "", client_id: defaultClientId || "", client_name: defaultClientName || "", insurer: "",
         policy_type: "motor", premium: "", start_date: "", renewal_date: "",
         assigned_broker: user?.email || "", broker_name: user?.full_name || "",
         status: "active", notes: ""
