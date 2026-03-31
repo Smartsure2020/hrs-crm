@@ -56,6 +56,7 @@ import Policies from './pages/Policies';
 import Reports from './pages/Reports';
 import Tasks from './pages/Tasks';
 import UserManagement from './pages/UserManagement';
+import Renewals from './pages/Renewals';
 import __Layout from './Layout.jsx';
 
 
@@ -69,6 +70,7 @@ export const PAGES = {
     "Reports": Reports,
     "Tasks": Tasks,
     "UserManagement": UserManagement,
+    "Renewals": Renewals,
 }
 
 export const pagesConfig = {

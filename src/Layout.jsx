@@ -5,7 +5,7 @@ import { base44 } from "@/api/base44Client";
 import {
   LayoutDashboard, Users, KanbanSquare, FileText,
   CheckSquare, Shield, BarChart3, ChevronLeft, ChevronRight,
-  LogOut, Bell, Search, Menu, X, UserCog, AlertCircle
+  LogOut, Bell, Search, Menu, X, UserCog, AlertCircle, CalendarClock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import PendingApproval from "@/components/auth/PendingApproval";
@@ -15,6 +15,7 @@ const BROKER_NAV = [
   { name: "Clients",    icon: Users,            page: "Clients" },
   { name: "Pipeline",   icon: KanbanSquare,     page: "Pipeline" },
   { name: "Policies",   icon: Shield,           page: "Policies" },
+  { name: "Renewals",   icon: CalendarClock,    page: "Renewals" },
   { name: "Tasks",      icon: CheckSquare,      page: "Tasks" },
   { name: "Documents",  icon: FileText,         page: "Documents" },
   { name: "Reports",    icon: BarChart3,         page: "Reports" },
