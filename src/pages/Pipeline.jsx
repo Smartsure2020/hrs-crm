@@ -138,6 +138,15 @@ export default function Pipeline() {
 
   const handleStageChange = async (id, stage) => {
     await base44.entities.Deal.update(id, { stage });
+    // When a deal is won, mark the associated client as active
+    if (stage === "won") {
+      const deal = rawDeals.find(d => d.id === id);
+      if (deal?.client_id) {
+        await base44.entities.Client.update(deal.client_id, { status: "active" });
+        queryClient.invalidateQueries({ queryKey: ["clients"] });
+        queryClient.invalidateQueries({ queryKey: ["clients-list"] });
+      }
+    }
     queryClient.invalidateQueries({ queryKey: ["deals"] });
   };
 
