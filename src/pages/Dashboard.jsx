@@ -150,19 +150,19 @@ export default function Dashboard() {
       {/* Stats */}
       {isAdminStaff ? (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard title="Active Clients" value={clients.filter(c => c.status === "active").length} icon={Users} color="blue" />
-          <StatCard title="Policies" value={policies.length} icon={Shield} color="green" />
-          <StatCard title="Renewals Due" value={renewalsDue} icon={Clock} color="orange" />
-          <StatCard title="Documents" value={documents.length} icon={Briefcase} color="purple" />
+          <Link to={createPageUrl("Clients")} className="block"><StatCard title="Active Clients" value={clients.filter(c => c.status === "active").length} icon={Users} color="blue" /></Link>
+          <Link to={createPageUrl("Policies")} className="block"><StatCard title="Policies" value={policies.length} icon={Shield} color="green" /></Link>
+          <Link to={createPageUrl("Renewals")} className="block"><StatCard title="Renewals Due" value={renewalsDue} icon={Clock} color="orange" /></Link>
+          <Link to={createPageUrl("Documents")} className="block"><StatCard title="Documents" value={documents.length} icon={Briefcase} color="purple" /></Link>
         </div>
       ) : (
         <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-          <StatCard title="Total Leads" value={totalLeads} icon={Users} color="blue" />
-          <StatCard title="Quotes Sent" value={quotesSent} icon={Send} color="purple" />
-          <StatCard title="Policies Bound" value={policyBound} icon={Shield} color="green" />
-          <StatCard title="Renewals Due" value={renewalsDue} icon={Clock} color="orange" />
-          <StatCard title="Due Today" value={tasksDueToday} icon={CheckSquare} color="cyan" />
-          <StatCard title="Overdue" value={tasksOverdue} icon={AlertTriangle} color="red" />
+          <Link to={createPageUrl("Pipeline")} className="block"><StatCard title="Total Leads" value={totalLeads} icon={Users} color="blue" /></Link>
+          <Link to={createPageUrl("Pipeline")} className="block"><StatCard title="Quotes Sent" value={quotesSent} icon={Send} color="purple" /></Link>
+          <Link to={createPageUrl("Pipeline")} className="block"><StatCard title="Policies Bound" value={policyBound} icon={Shield} color="green" /></Link>
+          <Link to={createPageUrl("Renewals")} className="block"><StatCard title="Renewals Due" value={renewalsDue} icon={Clock} color="orange" /></Link>
+          <Link to={createPageUrl("Tasks")} className="block"><StatCard title="Due Today" value={tasksDueToday} icon={CheckSquare} color="cyan" /></Link>
+          <Link to={createPageUrl("Tasks")} className="block"><StatCard title="Overdue" value={tasksOverdue} icon={AlertTriangle} color="red" /></Link>
         </div>
       )}
 
