@@ -125,6 +125,14 @@ export default function PolicyFormModal({ open, onClose, onSuccess, user, policy
                 </SelectContent>
               </Select>
             </div>
+            <div>
+              <Label className="text-xs text-gray-500">Broker Commission %</Label>
+              <Input type="number" min="0" max="100" placeholder="e.g. 70" value={form.broker_commission_pct || ""} onChange={e => setForm({...form, broker_commission_pct: e.target.value})} />
+            </div>
+            <div>
+              <Label className="text-xs text-gray-500">HRS Commission %</Label>
+              <Input type="number" min="0" max="100" placeholder="e.g. 30" value={form.hrs_commission_pct || ""} onChange={e => setForm({...form, hrs_commission_pct: e.target.value})} />
+            </div>
             <div className="col-span-2">
               <Label className="text-xs text-gray-500">Notes</Label>
               <Textarea value={form.notes || ""} onChange={e => setForm({...form, notes: e.target.value})} rows={2} />

@@ -1,0 +1,148 @@
+{
+  "name": "Client",
+  "type": "object",
+  "properties": {
+    "client_type": {
+      "type": "string",
+      "enum": [
+        "personal",
+        "commercial",
+        "body_corporate",
+        "motor_trader"
+      ],
+      "default": "personal",
+      "description": "Type of client"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive",
+        "prospect"
+      ],
+      "default": "prospect",
+      "description": "Client status"
+    },
+    "surname": {
+      "type": "string",
+      "description": "Surname (Personal)"
+    },
+    "initials": {
+      "type": "string",
+      "description": "Initials (Personal)"
+    },
+    "first_name": {
+      "type": "string",
+      "description": "First Name (Personal)"
+    },
+    "id_number": {
+      "type": "string",
+      "description": "ID Number (Personal)"
+    },
+    "client_name": {
+      "type": "string",
+      "description": "Full display name"
+    },
+    "company_name": {
+      "type": "string",
+      "description": "Company Name (Business)"
+    },
+    "contact_person": {
+      "type": "string",
+      "description": "Contact Person (Business)"
+    },
+    "company_reg": {
+      "type": "string",
+      "description": "Company Registration Number"
+    },
+    "vat_number": {
+      "type": "string",
+      "description": "VAT Number (Business)"
+    },
+    "email": {
+      "type": "string",
+      "description": "Email address"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Cell / Phone number"
+    },
+    "street_address": {
+      "type": "string",
+      "description": "Street & Number"
+    },
+    "complex_number": {
+      "type": "string",
+      "description": "Complex & Number"
+    },
+    "suburb": {
+      "type": "string",
+      "description": "Suburb"
+    },
+    "city": {
+      "type": "string",
+      "description": "City"
+    },
+    "province": {
+      "type": "string",
+      "description": "Province"
+    },
+    "postal_code": {
+      "type": "string",
+      "description": "Postal Code"
+    },
+    "address": {
+      "type": "string",
+      "description": "Full address (legacy)"
+    },
+    "current_insurer": {
+      "type": "string",
+      "description": "Current insurer name"
+    },
+    "current_policy_no": {
+      "type": "string",
+      "description": "Current policy number"
+    },
+    "proposed_insurer": {
+      "type": "string",
+      "description": "Proposed insurer name"
+    },
+    "referror": {
+      "type": "string",
+      "description": "Referror name or company"
+    },
+    "effective_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Effective date"
+    },
+    "renewal_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Renewal date"
+    },
+    "assigned_broker": {
+      "type": "string",
+      "description": "Email of the assigned broker"
+    },
+    "broker_name": {
+      "type": "string",
+      "description": "Display name of the assigned broker"
+    },
+    "notes": {
+      "type": "string",
+      "description": "General notes about the client"
+    },
+    "broker_commission_pct": {
+      "type": "number",
+      "description": "Broker commission percentage for this client"
+    },
+    "hrs_commission_pct": {
+      "type": "number",
+      "description": "HRS commission percentage for this client"
+    }
+  },
+  "required": [
+    "client_name"
+  ]
+}

@@ -1,0 +1,93 @@
+{
+  "name": "Policy",
+  "type": "object",
+  "properties": {
+    "policy_number": {
+      "type": "string",
+      "description": "Policy reference number"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "ID of the associated client"
+    },
+    "client_name": {
+      "type": "string",
+      "description": "Name of the client"
+    },
+    "deal_id": {
+      "type": "string",
+      "description": "ID of the associated deal"
+    },
+    "insurer": {
+      "type": "string",
+      "description": "Insurance company"
+    },
+    "policy_type": {
+      "type": "string",
+      "enum": [
+        "motor",
+        "household",
+        "commercial",
+        "liability",
+        "life",
+        "health",
+        "marine",
+        "engineering",
+        "crop",
+        "other"
+      ],
+      "description": "Type of insurance policy"
+    },
+    "premium": {
+      "type": "number",
+      "description": "Annual premium in ZAR"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Policy start date"
+    },
+    "renewal_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Policy renewal date"
+    },
+    "assigned_broker": {
+      "type": "string",
+      "description": "Email of the assigned broker"
+    },
+    "broker_name": {
+      "type": "string",
+      "description": "Display name of the assigned broker"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "expired",
+        "cancelled",
+        "pending"
+      ],
+      "default": "active",
+      "description": "Policy status"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Policy notes"
+    },
+    "broker_commission_pct": {
+      "type": "number",
+      "description": "Broker commission percentage"
+    },
+    "hrs_commission_pct": {
+      "type": "number",
+      "description": "HRS commission percentage"
+    }
+  },
+  "required": [
+    "policy_number",
+    "client_name",
+    "insurer",
+    "policy_type"
+  ]
+}

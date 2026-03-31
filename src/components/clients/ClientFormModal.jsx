@@ -263,6 +263,15 @@ export default function ClientFormModal({ open, onClose, onSuccess, user, client
               <Input type="date" value={form.renewal_date} onChange={set("renewal_date")} />
             </Field>
 
+            {/* ── COMMISSION SPLIT ── */}
+            <SectionTitle title="Commission Split" />
+            <Field label="Broker Commission %">
+              <Input type="number" min="0" max="100" placeholder="e.g. 70" value={form.broker_commission_pct || ""} onChange={set("broker_commission_pct")} />
+            </Field>
+            <Field label="HRS Commission %">
+              <Input type="number" min="0" max="100" placeholder="e.g. 30" value={form.hrs_commission_pct || ""} onChange={set("hrs_commission_pct")} />
+            </Field>
+
             {/* ── NOTES ── */}
             <SectionTitle title="Notes" />
             <div className="col-span-2">
