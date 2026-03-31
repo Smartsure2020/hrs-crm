@@ -1,0 +1,32 @@
+{
+  "name": "CommissionSplit",
+  "type": "object",
+  "properties": {
+    "broker_email": {
+      "type": "string",
+      "description": "Email of the broker"
+    },
+    "broker_name": {
+      "type": "string",
+      "description": "Display name of the broker"
+    },
+    "broker_percentage": {
+      "type": "number",
+      "description": "Percentage allocated to the broker"
+    },
+    "hrs_percentage": {
+      "type": "number",
+      "description": "Percentage allocated to HRS"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Optional notes about this commission split"
+    }
+  },
+  "required": [
+    "broker_email",
+    "broker_name",
+    "broker_percentage",
+    "hrs_percentage"
+  ]
+}
