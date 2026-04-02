@@ -72,13 +72,7 @@ export default function ClientDocuments({ documents, clientId, clientName, user 
   const uploadFile = async (file) => {
     if (!file) return;
     setUploading(true);
-    const base64 = await new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-    const { file_url } = await base44.integrations.Core.UploadFile({ file: base64 });
+    const { file_url } = await base44.integrations.Core.UploadFile({ file });
     await base44.entities.Document.create({
       name: file.name,
       file_url,
