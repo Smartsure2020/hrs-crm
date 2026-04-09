@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 } from "@/components/ui/table";
-import { Plus, Search, Filter, Users, Building2, Phone, Mail, ChevronRight, RefreshCw } from "lucide-react";
+import { Plus, Search, Users, Phone, Mail, Pencil, RefreshCw } from "lucide-react";
 import ClientFormModal from "@/components/clients/ClientFormModal";
 
 const CLIENT_TYPE_LABELS = {
@@ -26,6 +26,7 @@ const STATUS_COLORS = {
 };
 
 export default function Clients() {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
@@ -160,8 +161,8 @@ export default function Clients() {
                 filtered.map(client => (
                   <TableRow
                     key={client.id}
-                    className="cursor-pointer hover:bg-blue-50/30 transition-colors"
-                    onClick={() => { setEditClient(client); setShowForm(true); }}
+                    className="cursor-pointer hover:bg-blue-50/40 transition-colors group"
+                    onClick={() => navigate(createPageUrl("ClientProfile") + "?id=" + client.id)}
                   >
                     <TableCell>
                       <div className="flex items-center gap-3">
@@ -169,7 +170,7 @@ export default function Clients() {
                           {client.client_name?.charAt(0)?.toUpperCase() || "?"}
                         </div>
                         <div>
-                          <p className="font-medium text-sm text-gray-900">{client.client_name}</p>
+                          <p className="font-medium text-sm text-gray-900 group-hover:text-[#1a2744]">{client.client_name}</p>
                           {client.company_name && <p className="text-xs text-gray-400">{client.company_name}</p>}
                         </div>
                       </div>
@@ -192,13 +193,13 @@ export default function Clients() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Link
-                        to={createPageUrl("ClientProfile") + "?id=" + client.id}
-                        onClick={e => e.stopPropagation()}
-                        className="text-gray-400 hover:text-[#1a2744]"
+                      <button
+                        onClick={e => { e.stopPropagation(); setEditClient(client); setShowForm(true); }}
+                        className="p-2 rounded-lg text-gray-400 hover:text-[#1a2744] hover:bg-[#1a2744]/10 transition-colors"
+                        title="Edit client"
                       >
-                        <ChevronRight className="w-4 h-4" />
-                      </Link>
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
                     </TableCell>
                   </TableRow>
                 ))
