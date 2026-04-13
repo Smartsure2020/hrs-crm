@@ -57,6 +57,7 @@ import Reports from './pages/Reports';
 import Tasks from './pages/Tasks';
 import UserManagement from './pages/UserManagement';
 import Renewals from './pages/Renewals';
+import ROA from './pages/ROA';
 import __Layout from './Layout.jsx';
 
 
@@ -71,6 +72,7 @@ export const PAGES = {
     "Tasks": Tasks,
     "UserManagement": UserManagement,
     "Renewals": Renewals,
+    "ROA": ROA,
 }
 
 export const pagesConfig = {

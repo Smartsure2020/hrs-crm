@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ArrowLeft, Mail, Phone, MapPin, Building2, Edit2,
-  Shield, Briefcase, FileText, CheckSquare, RefreshCw, Plus
+  Shield, Briefcase, FileText, CheckSquare, RefreshCw, Plus, ClipboardList
 } from "lucide-react";
 import ClientDocuments from "@/components/clients/ClientDocuments";
 import moment from "moment";
@@ -137,6 +137,7 @@ export default function ClientProfile() {
           <TabsTrigger value="policies"><Shield className="w-3.5 h-3.5 mr-1.5" />Policies</TabsTrigger>
           <TabsTrigger value="tasks"><CheckSquare className="w-3.5 h-3.5 mr-1.5" />Tasks</TabsTrigger>
           <TabsTrigger value="documents"><FileText className="w-3.5 h-3.5 mr-1.5" />Documents</TabsTrigger>
+          <TabsTrigger value="roa"><ClipboardList className="w-3.5 h-3.5 mr-1.5" />ROA</TabsTrigger>
         </TabsList>
 
         <TabsContent value="deals">
@@ -233,6 +234,18 @@ export default function ClientProfile() {
             clientName={client?.client_name}
             user={user}
           />
+        </TabsContent>
+
+        <TabsContent value="roa">
+          <div className="rounded-lg overflow-hidden shadow-sm border border-gray-200">
+            <iframe
+              src="https://hrs-roa.base44.app"
+              width="100%"
+              height="900px"
+              style={{ border: "none", borderRadius: "8px" }}
+              title="HRS Advice Record"
+            />
+          </div>
         </TabsContent>
       </Tabs>
 
