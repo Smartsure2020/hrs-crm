@@ -521,6 +521,8 @@ export default function Pipeline() {
         user={user}
         deal={editDeal}
         clients={clients}
+        isAdmin={isAdmin}
+        brokers={brokers}
       />
 
       {/* ── Lost Deals Table ── */}
