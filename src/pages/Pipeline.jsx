@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, Plus, RefreshCw, Trash2, MoveRight, X } from "lucide-react";
+import DealFormModal from "@/components/pipeline/DealFormModal";
 
 const STAGES = [
   { value: "lead",       label: "Lead",                  color: "bg-blue-100 text-blue-700" },
@@ -69,6 +70,7 @@ export default function Pipeline() {
   const [pending, setPending]     = useState({});
   const [selected, setSelected]   = useState(new Set());
   const [bulkStage, setBulkStage] = useState("");
+  const [editDeal, setEditDeal]   = useState(null);
   const queryClient               = useQueryClient();
 
   useEffect(() => {
@@ -381,7 +383,12 @@ export default function Pipeline() {
                     className="mt-1 flex-shrink-0 accent-[#1a2744] cursor-pointer"
                   />
                   <div className="w-full">
-                    <TextCell deal={deal} field="client_name" placeholder="Client name…" />
+                    <div
+                      onClick={() => setEditDeal(deal)}
+                      className="cursor-pointer min-h-[26px] flex items-center text-sm text-[#1a2744] font-medium hover:underline hover:bg-[#1a2744]/5 rounded px-1.5 py-0.5 -mx-1.5 transition-colors"
+                    >
+                      {deal.client_name || <span className="text-gray-300 text-xs italic font-normal">Client name…</span>}
+                    </div>
                   </div>
                 </div>
 
@@ -470,7 +477,11 @@ export default function Pipeline() {
                   <div key={deal.id} className={`grid ${COL_WIDTHS} transition-colors duration-100 ${isSelected ? "bg-emerald-50" : isActive ? "bg-emerald-50/50" : "hover:bg-emerald-50/40"}`}>
                     <div className="px-4 py-3 flex items-start gap-2">
                       <input type="checkbox" checked={isSelected} onChange={() => toggleSelect(deal.id)} onClick={e => e.stopPropagation()} className="mt-1 flex-shrink-0 accent-[#1a2744] cursor-pointer" />
-                      <div className="w-full"><TextCell deal={deal} field="client_name" placeholder="Client name…" /></div>
+                      <div className="w-full">
+                        <div onClick={() => setEditDeal(deal)} className="cursor-pointer min-h-[26px] flex items-center text-sm text-[#1a2744] font-medium hover:underline hover:bg-[#1a2744]/5 rounded px-1.5 py-0.5 -mx-1.5 transition-colors">
+                          {deal.client_name || <span className="text-gray-300 text-xs italic font-normal">Client name…</span>}
+                        </div>
+                      </div>
                     </div>
                     <div className="px-4 py-3 border-l border-emerald-50"><ContactCell deal={deal} /></div>
                     <div className="px-4 py-3 border-l border-emerald-50 flex items-start pt-3.5">
@@ -496,6 +507,15 @@ export default function Pipeline() {
           </div>
         </div>
       )}
+
+      <DealFormModal
+        open={!!editDeal}
+        onClose={() => setEditDeal(null)}
+        onSuccess={() => queryClient.invalidateQueries({ queryKey: ["deals"] })}
+        user={user}
+        deal={editDeal}
+        clients={clients}
+      />
 
       {/* ── Lost Deals Table ── */}
       {lostDeals.length > 0 && (
@@ -536,7 +556,9 @@ export default function Pipeline() {
                         className="mt-1 flex-shrink-0 accent-[#1a2744] cursor-pointer"
                       />
                       <div className="w-full">
-                        <TextCell deal={deal} field="client_name" placeholder="Client name…" />
+                        <div onClick={() => setEditDeal(deal)} className="cursor-pointer min-h-[26px] flex items-center text-sm text-[#1a2744] font-medium hover:underline hover:bg-[#1a2744]/5 rounded px-1.5 py-0.5 -mx-1.5 transition-colors">
+                          {deal.client_name || <span className="text-gray-300 text-xs italic font-normal">Client name…</span>}
+                        </div>
                       </div>
                     </div>
                     <div className="px-4 py-3 border-l border-red-50">
