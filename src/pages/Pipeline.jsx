@@ -95,6 +95,12 @@ export default function Pipeline() {
     enabled: !!user,
   });
 
+  const { data: brokers = [] } = useQuery({
+    queryKey: ["brokers-list"],
+    queryFn: () => base44.entities.User.list(),
+    enabled: !!isAdmin,
+  });
+
   const clientMap = useMemo(() => {
     const m = {};
     clients.forEach(c => { m[c.id] = c; });

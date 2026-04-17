@@ -22,7 +22,7 @@ const STAGES = [
   { value: "lost", label: "Lost Deal" },
 ];
 
-export default function DealFormModal({ open, onClose, onSuccess, user, deal, clients }) {
+export default function DealFormModal({ open, onClose, onSuccess, user, deal, clients, isAdmin, brokers }) {
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     client_id: "", client_name: "", policy_type: "motor", estimated_premium: "",
@@ -146,6 +146,23 @@ export default function DealFormModal({ open, onClose, onSuccess, user, deal, cl
               <Label className="text-xs text-gray-500">Insurer</Label>
               <Input value={form.insurer || ""} onChange={e => setForm({...form, insurer: e.target.value})} />
             </div>
+            {isAdmin && brokers?.length > 0 && (
+              <div>
+                <Label className="text-xs text-gray-500">Assigned Broker</Label>
+                <Select
+                  value={form.assigned_broker || ""}
+                  onValueChange={v => {
+                    const broker = brokers.find(b => b.email === v);
+                    setForm({ ...form, assigned_broker: v, broker_name: broker?.full_name || v });
+                  }}
+                >
+                  <SelectTrigger><SelectValue placeholder="Select broker" /></SelectTrigger>
+                  <SelectContent>
+                    {brokers.map(b => <SelectItem key={b.email} value={b.email}>{b.full_name || b.email}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div>
               <Label className="text-xs text-gray-500">Next Action</Label>
               <Input value={form.next_action || ""} onChange={e => setForm({...form, next_action: e.target.value})} />
