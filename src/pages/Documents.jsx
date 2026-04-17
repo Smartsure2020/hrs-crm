@@ -45,9 +45,13 @@ export default function Documents() {
     base44.auth.me().then(setUser).catch(() => {});
   }, []);
 
+  const isAdmin = user?.role === "admin";
+
   const { data: documents = [], isLoading } = useQuery({
-    queryKey: ["documents"],
-    queryFn: () => base44.entities.Document.list("-created_date", 500),
+    queryKey: ["documents", user?.email],
+    queryFn: () => isAdmin
+      ? base44.entities.Document.list("-created_date", 500)
+      : base44.entities.Document.filter({ uploaded_by: user?.email }, "-created_date", 500),
     enabled: !!user,
   });
 
