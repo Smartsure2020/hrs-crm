@@ -15,7 +15,7 @@ const STAGES = [
   { value: "lost",       label: "Lost",                  color: "bg-red-100 text-red-500" },
 ];
 
-const ACTIVE_STAGES = STAGES.filter(s => s.value !== "lost");
+const ACTIVE_STAGES = STAGES.filter(s => s.value !== "lost" && s.value !== "won");
 
 // ── NotesCell (must be outside Pipeline to avoid remount on every render) ──
 function NotesCell({ deal, isEditing, getPending, setPending, keyFn, saveField, setEditingCell, startEdit }) {
@@ -104,7 +104,8 @@ export default function Pipeline() {
     [rawDeals]
   );
 
-  const activeDeals = deals.filter(d => d._stage !== "lost");
+  const activeDeals = deals.filter(d => d._stage !== "lost" && d._stage !== "won");
+  const wonDeals    = deals.filter(d => d._stage === "won");
   const lostDeals   = deals.filter(d => d._stage === "lost");
 
   const filteredDeals = stageFilter === "all"
@@ -442,6 +443,59 @@ export default function Pipeline() {
           <span>Add Lead</span>
         </button>
       </div>
+
+      {/* ── Won Deals Table ── */}
+      {wonDeals.length > 0 && (
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <h3 className="text-sm font-semibold text-emerald-700">Won Deals</h3>
+            <span className="text-xs text-gray-400 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full">
+              {wonDeals.length} · R {wonDeals.reduce((s, d) => s + (d.estimated_premium || 0), 0).toLocaleString()} bound
+            </span>
+          </div>
+          <div className="bg-white rounded-xl shadow-sm border border-emerald-100 overflow-hidden opacity-80">
+            <div className={`grid ${COL_WIDTHS} border-b border-emerald-100 bg-emerald-50/50`}>
+              {["Name", "Contact Details", "Stage", "Notes", "Est. Value (R)"].map((col, i) => (
+                <div key={i} className={`px-4 py-2.5 text-[11px] font-semibold text-emerald-600 uppercase tracking-wider ${i > 0 ? "border-l border-emerald-100" : "pl-10"}`}>
+                  {col}
+                </div>
+              ))}
+            </div>
+            <div className="divide-y divide-emerald-50">
+              {wonDeals.map(deal => {
+                const stageConf = getStageConf(deal._stage);
+                const isActive = editingCell?.id === deal.id;
+                const isSelected = selected.has(deal.id);
+                return (
+                  <div key={deal.id} className={`grid ${COL_WIDTHS} transition-colors duration-100 ${isSelected ? "bg-emerald-50" : isActive ? "bg-emerald-50/50" : "hover:bg-emerald-50/40"}`}>
+                    <div className="px-4 py-3 flex items-start gap-2">
+                      <input type="checkbox" checked={isSelected} onChange={() => toggleSelect(deal.id)} onClick={e => e.stopPropagation()} className="mt-1 flex-shrink-0 accent-[#1a2744] cursor-pointer" />
+                      <div className="w-full"><TextCell deal={deal} field="client_name" placeholder="Client name…" /></div>
+                    </div>
+                    <div className="px-4 py-3 border-l border-emerald-50"><ContactCell deal={deal} /></div>
+                    <div className="px-4 py-3 border-l border-emerald-50 flex items-start pt-3.5">
+                      <Select value={deal._stage} onValueChange={v => handleStageChange(deal.id, v)}>
+                        <SelectTrigger className="h-auto p-0 border-0 shadow-none focus:ring-0 bg-transparent w-auto [&>svg]:hidden">
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium cursor-pointer select-none ${stageConf.color}`}>
+                            {stageConf.label}<ChevronDown className="w-3 h-3 opacity-40" />
+                          </span>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {STAGES.map(s => <SelectItem key={s.value} value={s.value}><span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${s.color}`}>{s.label}</span></SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="px-4 py-3 border-l border-emerald-50">
+                      <NotesCell deal={deal} isEditing={editingCell?.id === deal.id && editingCell?.field === "notes"} getPending={getPending} setPending={setPending} keyFn={key} saveField={saveField} setEditingCell={setEditingCell} startEdit={startEdit} />
+                    </div>
+                    <div className="px-4 py-3 border-l border-emerald-50"><ValueCell deal={deal} /></div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Lost Deals Table ── */}
       {lostDeals.length > 0 && (
