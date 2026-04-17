@@ -57,8 +57,17 @@ export default function ClientFormModal({ open, onClose, onSuccess, user, client
   const isPersonal = form.client_type === "personal";
 
   useEffect(() => {
-    setForm(client ? { ...defaultForm(user), ...client } : defaultForm(user));
-  }, [client, open]);
+    if (!open) return;
+    if (client) {
+      setForm({ ...defaultForm(user), ...client });
+    } else {
+      setForm({
+        ...defaultForm(user),
+        assigned_broker: user?.email || "",
+        broker_name: user?.full_name || "",
+      });
+    }
+  }, [client, open, user]);
 
   useEffect(() => {
     if (user?.role === "admin") {
