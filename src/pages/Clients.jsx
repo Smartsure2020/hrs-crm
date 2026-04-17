@@ -30,7 +30,7 @@ export default function Clients() {
   const [user, setUser] = useState(null);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("active");
   const [brokerFilter, setBrokerFilter] = useState("all");
   const [showForm, setShowForm] = useState(false);
   const [editClient, setEditClient] = useState(null);
@@ -46,10 +46,8 @@ export default function Clients() {
 
   const { data: clients = [], isLoading } = useQuery({
     queryKey: ["clients", user?.email],
-    queryFn: () => isAdminStaff
+    queryFn: () => isAdmin
       ? base44.entities.Client.filter({ status: "active" }, "-created_date", 500)
-      : isAdmin
-      ? base44.entities.Client.list("-created_date", 500)
       : base44.entities.Client.filter({ assigned_broker: user?.email, status: "active" }, "-created_date", 500),
     enabled: !!user,
   });
