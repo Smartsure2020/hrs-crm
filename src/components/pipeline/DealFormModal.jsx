@@ -97,7 +97,11 @@ export default function DealFormModal({ open, onClose, onSuccess, user, deal, cl
           <div className="grid grid-cols-2 gap-3">
             <div className="col-span-2">
               <Label className="text-xs text-gray-500">Client *</Label>
-              {clients?.length > 0 ? (
+              {deal ? (
+                <div className="h-9 px-3 flex items-center rounded-md border border-input bg-muted text-sm text-muted-foreground">
+                  {form.client_name || "—"}
+                </div>
+              ) : clients?.length > 0 ? (
                 <Select value={form.client_id} onValueChange={handleClientSelect}>
                   <SelectTrigger><SelectValue placeholder="Select client" /></SelectTrigger>
                   <SelectContent>
