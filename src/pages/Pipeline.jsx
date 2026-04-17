@@ -71,6 +71,7 @@ export default function Pipeline() {
   const [selected, setSelected]   = useState(new Set());
   const [bulkStage, setBulkStage] = useState("");
   const [editDeal, setEditDeal]   = useState(null);
+  const [showNewDeal, setShowNewDeal] = useState(false);
   const queryClient               = useQueryClient();
 
   useEffect(() => {
@@ -291,7 +292,14 @@ export default function Pipeline() {
             {filteredDeals.length} deal{filteredDeals.length !== 1 ? "s" : ""} · R {totalValue.toLocaleString()} total
           </p>
         </div>
-        {/* Stage filter */}
+        {/* Stage filter + Add Lead */}
+        <div className="flex items-center gap-3">
+          <Button
+            onClick={() => setShowNewDeal(true)}
+            className="bg-[#1a2744] hover:bg-[#243556] text-white h-8 px-3 text-sm"
+          >
+            <Plus className="w-4 h-4 mr-1" /> Add Lead
+          </Button>
         <div className="flex items-center gap-2">
           <span className="text-xs text-gray-400 hidden sm:block">Filter by stage:</span>
           <div className="flex flex-wrap gap-1.5">
@@ -315,6 +323,7 @@ export default function Pipeline() {
               >{s.label}</button>
             ))}
           </div>
+        </div>
         </div>
       </div>
 
@@ -520,6 +529,16 @@ export default function Pipeline() {
         onSuccess={() => queryClient.invalidateQueries({ queryKey: ["deals"] })}
         user={user}
         deal={editDeal}
+        clients={clients}
+        isAdmin={isAdmin}
+        brokers={brokers}
+      />
+      <DealFormModal
+        open={showNewDeal}
+        onClose={() => setShowNewDeal(false)}
+        onSuccess={() => queryClient.invalidateQueries({ queryKey: ["deals"] })}
+        user={user}
+        deal={null}
         clients={clients}
         isAdmin={isAdmin}
         brokers={brokers}
