@@ -24,6 +24,7 @@ const STAGES = [
 
 export default function DealFormModal({ open, onClose, onSuccess, user, deal, clients, isAdmin, brokers }) {
   const [loading, setLoading] = useState(false);
+  const [newClientName, setNewClientName] = useState("");
   const [form, setForm] = useState({
     client_id: "", client_name: "", policy_type: "motor", estimated_premium: "",
     stage: "lead_received", assigned_broker: user?.email || "", broker_name: user?.full_name || "",
@@ -43,10 +44,16 @@ export default function DealFormModal({ open, onClose, onSuccess, user, deal, cl
         stage: "lead_received", assigned_broker: user?.email || "", broker_name: user?.full_name || "",
         notes: "", next_action: "", reminder_date: "", insurer: ""
       });
+      setNewClientName("");
     }
   }, [deal, open]);
 
   const handleClientSelect = (clientId) => {
+    if (clientId === "__new__") {
+      setForm({ ...form, client_id: "__new__", client_name: "" });
+      setNewClientName("");
+      return;
+    }
     const client = clients?.find(c => c.id === clientId);
     setForm({
       ...form,
@@ -59,8 +66,25 @@ export default function DealFormModal({ open, onClose, onSuccess, user, deal, cl
 
   const handleSubmit = async () => {
     setLoading(true);
+    let resolvedClientId = form.client_id;
+    let resolvedClientName = form.client_name;
+
+    // Create new client if needed
+    if (form.client_id === "__new__" && newClientName.trim()) {
+      const newClient = await base44.entities.Client.create({
+        client_name: newClientName.trim(),
+        assigned_broker: form.assigned_broker || user?.email,
+        broker_name: form.broker_name || user?.full_name,
+        status: "prospect",
+      });
+      resolvedClientId = newClient.id;
+      resolvedClientName = newClientName.trim();
+    }
+
     const data = {
       ...form,
+      client_id: resolvedClientId,
+      client_name: resolvedClientName,
       estimated_premium: form.estimated_premium ? parseFloat(form.estimated_premium) : 0
     };
     if (deal) {
@@ -102,12 +126,24 @@ export default function DealFormModal({ open, onClose, onSuccess, user, deal, cl
                   {form.client_name || "—"}
                 </div>
               ) : clients?.length > 0 ? (
-                <Select value={form.client_id} onValueChange={handleClientSelect}>
-                  <SelectTrigger><SelectValue placeholder="Select client" /></SelectTrigger>
-                  <SelectContent>
-                    {clients.map(c => <SelectItem key={c.id} value={c.id}>{c.client_name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                <>
+                  <Select value={form.client_id} onValueChange={handleClientSelect}>
+                    <SelectTrigger><SelectValue placeholder="Select client" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__new__">➕ New Client</SelectItem>
+                      {clients.map(c => <SelectItem key={c.id} value={c.id}>{c.client_name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  {form.client_id === "__new__" && (
+                    <Input
+                      className="mt-2"
+                      placeholder="Enter new client name"
+                      value={newClientName}
+                      onChange={e => setNewClientName(e.target.value)}
+                      autoFocus
+                    />
+                  )}
+                </>
               ) : (
                 <Input value={form.client_name} onChange={e => setForm({...form, client_name: e.target.value})} placeholder="Client name" />
               )}
