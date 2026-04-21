@@ -1,0 +1,75 @@
+{
+  "name": "Deal",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "ID of the associated client"
+    },
+    "client_name": {
+      "type": "string",
+      "description": "Name of the client"
+    },
+    "contact_phone": {
+      "type": "string",
+      "description": "Contact phone number"
+    },
+    "contact_email": {
+      "type": "string",
+      "description": "Contact email address"
+    },
+    "policy_type": {
+      "type": "string",
+      "enum": [
+        "personal",
+        "commercial"
+      ],
+      "description": "Type of insurance policy"
+    },
+    "estimated_premium": {
+      "type": "number",
+      "description": "Estimated annual premium in ZAR"
+    },
+    "stage": {
+      "type": "string",
+      "enum": [
+        "lead",
+        "quoting",
+        "quote_sent",
+        "follow_up",
+        "won",
+        "lost"
+      ],
+      "default": "lead",
+      "description": "Current pipeline stage"
+    },
+    "assigned_broker": {
+      "type": "string",
+      "description": "Email of the assigned broker"
+    },
+    "broker_name": {
+      "type": "string",
+      "description": "Display name of the assigned broker"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Deal notes"
+    },
+    "next_action": {
+      "type": "string",
+      "description": "Next action to take"
+    },
+    "reminder_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date for next follow up"
+    },
+    "insurer": {
+      "type": "string",
+      "description": "Insurance company name"
+    }
+  },
+  "required": [
+    "client_name"
+  ]
+}

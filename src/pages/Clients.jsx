@@ -210,7 +210,7 @@ export default function Clients() {
       <ClientFormModal
         open={showForm}
         onClose={() => { setShowForm(false); setEditClient(null); }}
-        onSuccess={() => queryClient.invalidateQueries({ queryKey: ["clients"] })}
+        onSuccess={() => queryClient.invalidateQueries({ queryKey: ["clients", user?.email] })}
         user={user}
         client={editClient}
       />

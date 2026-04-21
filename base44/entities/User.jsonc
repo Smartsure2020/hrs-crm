@@ -1,0 +1,33 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "broker",
+        "admin_staff"
+      ],
+      "default": "broker",
+      "description": "User role: admin, broker, or admin_staff"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected"
+      ],
+      "default": "pending",
+      "description": "Account approval status"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Phone number"
+    }
+  },
+  "required": [
+    "phone"
+  ]
+}

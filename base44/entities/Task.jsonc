@@ -1,0 +1,79 @@
+{
+  "name": "Task",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Task title"
+    },
+    "description": {
+      "type": "string",
+      "description": "Task description"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "Associated client ID"
+    },
+    "client_name": {
+      "type": "string",
+      "description": "Associated client name"
+    },
+    "deal_id": {
+      "type": "string",
+      "description": "Associated deal ID"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Due date"
+    },
+    "assigned_to": {
+      "type": "string",
+      "description": "Email of assigned user"
+    },
+    "assigned_name": {
+      "type": "string",
+      "description": "Name of assigned user"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "in_progress",
+        "completed",
+        "overdue"
+      ],
+      "default": "pending",
+      "description": "Task status"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "urgent"
+      ],
+      "default": "medium",
+      "description": "Task priority"
+    },
+    "task_type": {
+      "type": "string",
+      "enum": [
+        "follow_up_quote",
+        "renewal_reminder",
+        "claim_update",
+        "compliance_followup",
+        "general",
+        "call_client",
+        "send_documents"
+      ],
+      "default": "general",
+      "description": "Type of task"
+    }
+  },
+  "required": [
+    "title",
+    "due_date"
+  ]
+}

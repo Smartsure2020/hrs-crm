@@ -1,0 +1,88 @@
+{
+  "name": "Document",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Document name"
+    },
+    "file_url": {
+      "type": "string",
+      "description": "URL to the uploaded file"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "Associated client ID"
+    },
+    "client_name": {
+      "type": "string",
+      "description": "Associated client name"
+    },
+    "deal_id": {
+      "type": "string",
+      "description": "Associated deal ID"
+    },
+    "policy_id": {
+      "type": "string",
+      "description": "Associated policy ID"
+    },
+    "folder": {
+      "type": "string",
+      "enum": [
+        "kyc",
+        "compliance",
+        "current_policies",
+        "previous_policies",
+        "renewals",
+        "current_claims",
+        "previous_claims",
+        "correspondence",
+        "general"
+      ],
+      "default": "general",
+      "description": "Document folder"
+    },
+    "document_type": {
+      "type": "string",
+      "enum": [
+        "fica_docs",
+        "broker_appointment",
+        "roa",
+        "disclosure",
+        "debit_order_authority",
+        "fee_consent_form",
+        "policy_schedule",
+        "quote",
+        "claim",
+        "compliance",
+        "id_copy",
+        "proof_of_address",
+        "bank_statement",
+        "correspondence",
+        "other"
+      ],
+      "default": "other",
+      "description": "Type of document"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Document tags"
+    },
+    "uploaded_by": {
+      "type": "string",
+      "description": "Email of uploader"
+    },
+    "version": {
+      "type": "number",
+      "default": 1,
+      "description": "Document version"
+    }
+  },
+  "required": [
+    "name",
+    "file_url"
+  ]
+}
