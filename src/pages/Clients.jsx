@@ -47,8 +47,8 @@ export default function Clients() {
   const { data: clients = [], isLoading } = useQuery({
     queryKey: ["clients", user?.email],
     queryFn: () => canSeeAll
-      ? base44.entities.Client.list("-created_date", 500)
-      : base44.entities.Client.filter({ assigned_broker: user?.email }, "-created_date", 500),
+      ? base44.entities.Client.filter({ status: "active" }, "-created_date", 500)
+      : base44.entities.Client.filter({ assigned_broker: user?.email, status: "active" }, "-created_date", 500),
     enabled: !!user,
   });
 
@@ -80,7 +80,7 @@ export default function Clients() {
           <h2 className="text-xl font-bold text-[#1a2744]">Clients</h2>
           <p className="text-sm text-gray-400">{filtered.length} client{filtered.length !== 1 ? "s" : ""}</p>
         </div>
-        <Button onClick={() => { setEditClient(null); setShowForm(true); }} className="bg-[#1a2744] hover:bg-[#243556]">
+        <Button onClick={() => { setEditClient(null); setShowForm(true); }} className="bg-[#1a2744] hover:bg-[#243556] text-white">
           <Plus className="w-4 h-4 mr-2" /> New Client
         </Button>
       </div>
@@ -213,6 +213,7 @@ export default function Clients() {
         onSuccess={() => queryClient.invalidateQueries({ queryKey: ["clients", user?.email] })}
         user={user}
         client={editClient}
+        defaultStatus="active"
       />
     </div>
   );

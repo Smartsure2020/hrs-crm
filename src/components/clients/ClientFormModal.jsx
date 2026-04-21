@@ -32,9 +32,9 @@ function SectionTitle({ title }) {
   );
 }
 
-const defaultForm = (user) => ({
+const defaultForm = (user, defaultStatus = "prospect") => ({
   client_type: "personal",
-  status: "prospect",
+  status: defaultStatus,
   client_name: "",
   surname: "", initials: "", first_name: "", id_number: "",
   company_name: "", contact_person: "", company_reg: "", vat_number: "",
@@ -49,25 +49,25 @@ const defaultForm = (user) => ({
   notes: ""
 });
 
-export default function ClientFormModal({ open, onClose, onSuccess, user, client }) {
+export default function ClientFormModal({ open, onClose, onSuccess, user, client, defaultStatus }) {
   const [loading, setLoading] = useState(false);
   const [brokers, setBrokers] = useState([]);
-  const [form, setForm] = useState(defaultForm(user));
+  const [form, setForm] = useState(defaultForm(user, defaultStatus));
 
   const isPersonal = form.client_type === "personal";
 
   useEffect(() => {
     if (!open) return;
     if (client) {
-      setForm({ ...defaultForm(user), ...client });
+      setForm({ ...defaultForm(user, defaultStatus), ...client });
     } else {
       setForm({
-        ...defaultForm(user),
+        ...defaultForm(user, defaultStatus),
         assigned_broker: user?.email || "",
         broker_name: user?.full_name || "",
       });
     }
-  }, [client, open, user]);
+  }, [client, open, user, defaultStatus]);
 
   useEffect(() => {
     if (user?.role === "admin") {
