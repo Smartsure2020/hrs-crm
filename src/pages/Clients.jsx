@@ -47,8 +47,8 @@ export default function Clients() {
   const { data: clients = [], isLoading } = useQuery({
     queryKey: ["clients", user?.email],
     queryFn: () => canSeeAll
-      ? base44.entities.Client.filter({ status: "active" }, "-created_date", 500)
-      : base44.entities.Client.filter({ assigned_broker: user?.email, status: "active" }, "-created_date", 500),
+      ? base44.entities.Client.list("-created_date", 500)
+      : base44.entities.Client.filter({ assigned_broker: user?.email }, "-created_date", 500),
     enabled: !!user,
   });
 
