@@ -362,6 +362,15 @@ export default function Pipeline() {
           ))}
         </div>
 
+        {/* Add row — top */}
+        <button
+          onClick={handleAddRow}
+          className="w-full flex items-center gap-2 px-4 py-2.5 border-b border-gray-100 hover:bg-gray-50 transition-colors text-gray-400 hover:text-[#1a2744] text-sm"
+        >
+          <Plus className="w-4 h-4" />
+          <span>Add Lead</span>
+        </button>
+
         {/* Rows */}
         <div className="divide-y divide-gray-100">
           {isLoading && (
@@ -398,11 +407,12 @@ export default function Pipeline() {
                     className="mt-1 flex-shrink-0 accent-[#1a2744] cursor-pointer"
                   />
                   <div className="w-full">
+                    <TextCell deal={deal} field="client_name" placeholder="Client name…" />
                     <div
                       onClick={() => setEditDeal(deal)}
-                      className="cursor-pointer min-h-[26px] flex items-center text-sm text-[#1a2744] font-medium hover:underline hover:bg-[#1a2744]/5 rounded px-1.5 py-0.5 -mx-1.5 transition-colors"
+                      className="cursor-pointer text-[10px] text-gray-300 hover:text-[#1a2744] hover:underline mt-0.5 transition-colors"
                     >
-                      {deal.client_name || <span className="text-gray-300 text-xs italic font-normal">Client name…</span>}
+                      Open details
                     </div>
                   </div>
                 </div>
@@ -456,14 +466,7 @@ export default function Pipeline() {
           })}
         </div>
 
-        {/* Add row */}
-        <button
-          onClick={handleAddRow}
-          className="w-full flex items-center gap-2 px-4 py-3 border-t border-gray-100 hover:bg-gray-50 transition-colors text-gray-400 hover:text-[#1a2744] text-sm"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add Lead</span>
-        </button>
+
       </div>
 
       {/* ── Won Deals Table ── */}
@@ -493,12 +496,11 @@ export default function Pipeline() {
                     <div className="px-4 py-3 flex items-start gap-2">
                       <input type="checkbox" checked={isSelected} onChange={() => toggleSelect(deal.id)} onClick={e => e.stopPropagation()} className="mt-1 flex-shrink-0 accent-[#1a2744] cursor-pointer" />
                       <div className="w-full">
-                        <div onClick={() => setEditDeal(deal)} className="cursor-pointer min-h-[26px] flex items-center text-sm text-[#1a2744] font-medium hover:underline hover:bg-[#1a2744]/5 rounded px-1.5 py-0.5 -mx-1.5 transition-colors">
-                          {deal.client_name || <span className="text-gray-300 text-xs italic font-normal">Client name…</span>}
-                        </div>
+                         <TextCell deal={deal} field="client_name" placeholder="Client name…" />
+                         <div onClick={() => setEditDeal(deal)} className="cursor-pointer text-[10px] text-gray-300 hover:text-[#1a2744] hover:underline mt-0.5 transition-colors">Open details</div>
+                       </div>
                       </div>
-                    </div>
-                    <div className="px-4 py-3 border-l border-emerald-50"><ContactCell deal={deal} /></div>
+                      <div className="px-4 py-3 border-l border-emerald-50"><ContactCell deal={deal} /></div>
                     <div className="px-4 py-3 border-l border-emerald-50 flex items-start pt-3.5">
                       <Select value={deal._stage} onValueChange={v => handleStageChange(deal.id, v)}>
                         <SelectTrigger className="h-auto p-0 border-0 shadow-none focus:ring-0 bg-transparent w-auto [&>svg]:hidden">
@@ -583,12 +585,11 @@ export default function Pipeline() {
                         className="mt-1 flex-shrink-0 accent-[#1a2744] cursor-pointer"
                       />
                       <div className="w-full">
-                        <div onClick={() => setEditDeal(deal)} className="cursor-pointer min-h-[26px] flex items-center text-sm text-[#1a2744] font-medium hover:underline hover:bg-[#1a2744]/5 rounded px-1.5 py-0.5 -mx-1.5 transition-colors">
-                          {deal.client_name || <span className="text-gray-300 text-xs italic font-normal">Client name…</span>}
-                        </div>
+                         <TextCell deal={deal} field="client_name" placeholder="Client name…" />
+                         <div onClick={() => setEditDeal(deal)} className="cursor-pointer text-[10px] text-gray-300 hover:text-[#1a2744] hover:underline mt-0.5 transition-colors">Open details</div>
+                       </div>
                       </div>
-                    </div>
-                    <div className="px-4 py-3 border-l border-red-50">
+                      <div className="px-4 py-3 border-l border-red-50">
                       <ContactCell deal={deal} />
                     </div>
                     <div className="px-4 py-3 border-l border-red-50 flex items-start pt-3.5">
