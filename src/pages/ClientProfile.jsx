@@ -135,8 +135,8 @@ export default function ClientProfile() {
         <TabsList className="bg-white border shadow-sm">
           <TabsTrigger value="deals"><Briefcase className="w-3.5 h-3.5 mr-1.5" />Deals</TabsTrigger>
           <TabsTrigger value="policies"><Shield className="w-3.5 h-3.5 mr-1.5" />Policies</TabsTrigger>
-          <TabsTrigger value="tasks"><CheckSquare className="w-3.5 h-3.5 mr-1.5" />Tasks</TabsTrigger>
           <TabsTrigger value="documents"><FileText className="w-3.5 h-3.5 mr-1.5" />Documents</TabsTrigger>
+          <TabsTrigger value="tasks"><CheckSquare className="w-3.5 h-3.5 mr-1.5" />Tasks</TabsTrigger>
           <TabsTrigger value="roa"><ClipboardList className="w-3.5 h-3.5 mr-1.5" />ROA</TabsTrigger>
         </TabsList>
 
