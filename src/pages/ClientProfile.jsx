@@ -9,9 +9,10 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ArrowLeft, Mail, Phone, MapPin, Building2, Edit2,
-  Shield, Briefcase, FileText, CheckSquare, RefreshCw, Plus, ClipboardList
+  Shield, Briefcase, FileText, CheckSquare, RefreshCw, Plus, ClipboardList, AlertCircle
 } from "lucide-react";
 import ClientDocuments from "@/components/clients/ClientDocuments";
+import ClientClaims from "@/components/clients/ClientClaims";
 import moment from "moment";
 import ClientFormModal from "@/components/clients/ClientFormModal";
 import DealFormModal from "@/components/pipeline/DealFormModal";
@@ -66,6 +67,12 @@ export default function ClientProfile() {
   const { data: documents = [] } = useQuery({
     queryKey: ["client-docs", clientId],
     queryFn: () => base44.entities.Document.filter({ client_id: clientId }),
+    enabled: !!clientId,
+  });
+
+  const { data: claims = [] } = useQuery({
+    queryKey: ["client-claims", clientId],
+    queryFn: () => base44.entities.Claim.filter({ client_id: clientId }),
     enabled: !!clientId,
   });
 
@@ -136,6 +143,7 @@ export default function ClientProfile() {
           <TabsTrigger value="deals"><Briefcase className="w-3.5 h-3.5 mr-1.5" />Deals</TabsTrigger>
           <TabsTrigger value="policies"><Shield className="w-3.5 h-3.5 mr-1.5" />Policies</TabsTrigger>
           <TabsTrigger value="documents"><FileText className="w-3.5 h-3.5 mr-1.5" />Documents</TabsTrigger>
+          <TabsTrigger value="claims"><AlertCircle className="w-3.5 h-3.5 mr-1.5" />Claims</TabsTrigger>
           <TabsTrigger value="tasks"><CheckSquare className="w-3.5 h-3.5 mr-1.5" />Tasks</TabsTrigger>
           <TabsTrigger value="roa"><ClipboardList className="w-3.5 h-3.5 mr-1.5" />ROA</TabsTrigger>
         </TabsList>
@@ -201,6 +209,15 @@ export default function ClientProfile() {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="claims">
+          <ClientClaims
+            claims={claims}
+            clientId={clientId}
+            clientName={client?.client_name}
+            policies={policies}
+          />
         </TabsContent>
 
         <TabsContent value="tasks">
