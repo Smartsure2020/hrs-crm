@@ -82,6 +82,8 @@ export default function ClientProfile() {
     return <div className="flex items-center justify-center h-full"><RefreshCw className="w-5 h-5 animate-spin text-gray-400" /></div>;
   }
 
+  const isAdminStaff = user?.role === "admin_staff";
+
   const STAGE_COLORS = {
     lead_received: "bg-gray-100 text-gray-700",
     contacted: "bg-blue-100 text-blue-700",
@@ -125,7 +127,7 @@ export default function ClientProfile() {
         </Card>
         <Card className="border-0 shadow-sm p-5">
           <div className="grid grid-cols-2 gap-4">
-            <div><p className="text-xs text-gray-400">Deals</p><p className="text-2xl font-bold text-[#1a2744]">{deals.length}</p></div>
+            {!isAdminStaff && <div><p className="text-xs text-gray-400">Deals</p><p className="text-2xl font-bold text-[#1a2744]">{deals.length}</p></div>}
             <div><p className="text-xs text-gray-400">Policies</p><p className="text-2xl font-bold text-[#1a2744]">{policies.length}</p></div>
             <div><p className="text-xs text-gray-400">Open Tasks</p><p className="text-2xl font-bold text-[#1a2744]">{tasks.filter(t=>t.status!=="completed").length}</p></div>
             <div><p className="text-xs text-gray-400">Documents</p><p className="text-2xl font-bold text-[#1a2744]">{documents.length}</p></div>
@@ -138,9 +140,9 @@ export default function ClientProfile() {
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue="deals" className="space-y-4">
+      <Tabs defaultValue={isAdminStaff ? "policies" : "deals"} className="space-y-4">
         <TabsList className="bg-white border shadow-sm">
-          <TabsTrigger value="deals"><Briefcase className="w-3.5 h-3.5 mr-1.5" />Deals</TabsTrigger>
+          {!isAdminStaff && <TabsTrigger value="deals"><Briefcase className="w-3.5 h-3.5 mr-1.5" />Deals</TabsTrigger>}
           <TabsTrigger value="policies"><Shield className="w-3.5 h-3.5 mr-1.5" />Policies</TabsTrigger>
           <TabsTrigger value="documents"><FileText className="w-3.5 h-3.5 mr-1.5" />Documents</TabsTrigger>
           <TabsTrigger value="claims"><AlertCircle className="w-3.5 h-3.5 mr-1.5" />Claims</TabsTrigger>
@@ -148,7 +150,7 @@ export default function ClientProfile() {
           <TabsTrigger value="roa"><ClipboardList className="w-3.5 h-3.5 mr-1.5" />ROA</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="deals">
+        {!isAdminStaff && <TabsContent value="deals">
           <Card className="border-0 shadow-sm">
             <div className="flex items-center justify-between px-4 pt-4">
               <p className="text-sm font-medium text-gray-700">{deals.length} deal{deals.length !== 1 ? 's' : ''}</p>
@@ -176,7 +178,7 @@ export default function ClientProfile() {
               )}
             </CardContent>
           </Card>
-        </TabsContent>
+        </TabsContent>}
 
         <TabsContent value="policies">
           <Card className="border-0 shadow-sm">
@@ -273,7 +275,7 @@ export default function ClientProfile() {
         user={user}
         client={client}
       />
-      <DealFormModal
+      {!isAdminStaff && <DealFormModal
         open={showDeal}
         onClose={() => { setShowDeal(false); setEditDeal(null); }}
         onSuccess={() => {
@@ -283,7 +285,7 @@ export default function ClientProfile() {
         user={user}
         clients={[client]}
         deal={editDeal}
-      />
+      />}
       <PolicyFormModal
         open={showPolicy}
         onClose={() => { setShowPolicy(false); setEditPolicy(null); }}
