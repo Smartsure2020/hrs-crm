@@ -1,0 +1,62 @@
+{
+  "name": "AuditLog",
+  "type": "object",
+  "properties": {
+    "user_name": {
+      "type": "string",
+      "description": "Full name of the user who performed the action"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "Email of the user who performed the action"
+    },
+    "user_role": {
+      "type": "string",
+      "description": "Role of the user at time of action"
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "view_client",
+        "edit_client",
+        "create_client",
+        "delete_record",
+        "submit_form",
+        "export_data",
+        "import_data",
+        "download_file",
+        "login",
+        "logout",
+        "role_change",
+        "permission_change",
+        "generate_report",
+        "view_page"
+      ],
+      "description": "Type of action performed"
+    },
+    "record_type": {
+      "type": "string",
+      "description": "Entity type affected (e.g. Client, Policy, Deal)"
+    },
+    "record_id": {
+      "type": "string",
+      "description": "ID of the affected record"
+    },
+    "record_name": {
+      "type": "string",
+      "description": "Display name of the affected record or page"
+    },
+    "details": {
+      "type": "string",
+      "description": "Additional context or description of the action"
+    },
+    "ip_address": {
+      "type": "string",
+      "description": "IP address of the user (if available)"
+    }
+  },
+  "required": [
+    "action",
+    "user_email"
+  ]
+}

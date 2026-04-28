@@ -11,8 +11,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 } from "@/components/ui/table";
-import { Plus, Search, Users, Phone, Mail, Pencil, RefreshCw } from "lucide-react";
+import { Plus, Search, Users, Phone, Mail, Pencil, RefreshCw, Download, Upload, FileDown } from "lucide-react";
 import ClientFormModal from "@/components/clients/ClientFormModal";
+import CSVImportModal from "@/components/shared/CSVImportModal";
+import { downloadCSV, downloadTemplate } from "@/lib/csvUtils";
+import { logAudit } from "@/lib/auditLogger";
 
 const CLIENT_TYPE_LABELS = {
   personal: "Personal", commercial: "Commercial",
@@ -34,6 +37,7 @@ export default function Clients() {
   const [brokerFilter, setBrokerFilter] = useState("all");
   const [showForm, setShowForm] = useState(false);
   const [editClient, setEditClient] = useState(null);
+  const [showImport, setShowImport] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -43,6 +47,42 @@ export default function Clients() {
   const isAdmin = user?.role === "admin";
   const isAdminStaff = user?.role === "admin_staff";
   const canSeeAll = isAdmin || isAdminStaff;
+  const canImportExport = isAdmin || user?.role === "manager";
+
+  const CLIENT_COLUMNS = ["id", "client_type", "status", "client_name", "first_name", "surname", "initials", "id_number", "company_name", "company_reg", "email", "phone", "street_address", "suburb", "city", "province", "postal_code", "current_insurer", "current_policy_no", "broker_name", "notes"];
+  const CLIENT_HEADERS = ["ID", "Type", "Status", "Client Name", "First Name", "Surname", "Initials", "ID Number", "Company Name", "Company Reg", "Email", "Phone", "Street Address", "Suburb", "City", "Province", "Postal Code", "Current Insurer", "Current Policy No", "Broker", "Notes"];
+
+  const handleExport = () => {
+    downloadCSV(filtered, CLIENT_COLUMNS, CLIENT_HEADERS, "clients");
+    logAudit(user, "export_data", { record_type: "Client", record_name: "Clients List", details: `Exported ${filtered.length} records` });
+  };
+
+  const handleImport = async (validRows) => {
+    let success = 0;
+    const skipped = [];
+    for (const row of validRows) {
+      try {
+        await base44.entities.Client.create({
+          client_name: row["Client Name"] || row["client_name"],
+          client_type: row["Type"] || row["client_type"] || "personal",
+          status: row["Status"] || row["status"] || "prospect",
+          first_name: row["First Name"] || row["first_name"] || "",
+          surname: row["Surname"] || row["surname"] || "",
+          initials: row["Initials"] || row["initials"] || "",
+          email: row["Email"] || row["email"] || "",
+          phone: row["Phone"] || row["phone"] || "",
+          company_name: row["Company Name"] || row["company_name"] || "",
+          notes: row["Notes"] || row["notes"] || "",
+        });
+        success++;
+      } catch (e) {
+        skipped.push({ row: row._rowIndex, reason: e.message || "Failed to create" });
+      }
+    }
+    queryClient.invalidateQueries({ queryKey: ["clients"] });
+    logAudit(user, "import_data", { record_type: "Client", record_name: "Clients Import", details: `Imported ${success}, skipped ${skipped.length}` });
+    return { success, skipped };
+  };
 
   const { data: clients = [], isLoading } = useQuery({
     queryKey: ["clients", user?.email],
@@ -80,9 +120,24 @@ export default function Clients() {
           <h2 className="text-xl font-bold text-[#1a2744]">Clients</h2>
           <p className="text-sm text-gray-400">{filtered.length} client{filtered.length !== 1 ? "s" : ""}</p>
         </div>
-        <Button onClick={() => { setEditClient(null); setShowForm(true); }} className="bg-[#1a2744] hover:bg-[#243556] text-white">
-          <Plus className="w-4 h-4 mr-2" /> New Client
-        </Button>
+        <div className="flex items-center gap-2">
+          {canImportExport && (
+            <>
+              <Button variant="outline" size="sm" onClick={() => downloadTemplate(CLIENT_COLUMNS, CLIENT_HEADERS, "clients")} title="Download CSV Template">
+                <FileDown className="w-3.5 h-3.5 mr-1.5" /> Template
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setShowImport(true)}>
+                <Upload className="w-3.5 h-3.5 mr-1.5" /> Import
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleExport}>
+                <Download className="w-3.5 h-3.5 mr-1.5" /> Export
+              </Button>
+            </>
+          )}
+          <Button onClick={() => { setEditClient(null); setShowForm(true); }} className="bg-[#1a2744] hover:bg-[#243556] text-white">
+            <Plus className="w-4 h-4 mr-2" /> New Client
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -214,6 +269,17 @@ export default function Clients() {
         user={user}
         client={editClient}
         defaultStatus="active"
+      />
+
+      <CSVImportModal
+        open={showImport}
+        onClose={() => setShowImport(false)}
+        entityName="Clients"
+        columns={CLIENT_COLUMNS}
+        headers={CLIENT_HEADERS}
+        requiredFields={["client_name"]}
+        onImport={handleImport}
+        templateFilename="clients"
       />
     </div>
   );

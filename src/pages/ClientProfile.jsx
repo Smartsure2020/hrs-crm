@@ -15,6 +15,7 @@ import ClientDocuments from "@/components/clients/ClientDocuments";
 import ClientClaims from "@/components/clients/ClientClaims";
 import moment from "moment";
 import ClientFormModal from "@/components/clients/ClientFormModal";
+import { logAudit } from "@/lib/auditLogger";
 import DealFormModal from "@/components/pipeline/DealFormModal";
 import PolicyFormModal from "@/components/policies/PolicyFormModal";
 
@@ -38,6 +39,17 @@ export default function ClientProfile() {
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
   }, []);
+
+  // Log client view once user and client are both loaded
+  useEffect(() => {
+    if (user && client) {
+      logAudit(user, "view_client", {
+        record_type: "Client",
+        record_id: client.id,
+        record_name: client.client_name,
+      });
+    }
+  }, [user?.email, client?.id]);
 
   const { data: clients = [] } = useQuery({
     queryKey: ["client", clientId],
@@ -271,7 +283,10 @@ export default function ClientProfile() {
       <ClientFormModal
         open={showEdit}
         onClose={() => setShowEdit(false)}
-        onSuccess={() => queryClient.invalidateQueries({ queryKey: ["client"] })}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ["client"] });
+          logAudit(user, "edit_client", { record_type: "Client", record_id: client?.id, record_name: client?.client_name });
+        }}
         user={user}
         client={client}
       />

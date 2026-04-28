@@ -9,9 +9,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 } from "@/components/ui/table";
-import { Plus, Search, Shield, RefreshCw, AlertTriangle, Clock } from "lucide-react";
+import { Plus, Search, Shield, RefreshCw, AlertTriangle, Clock, Download, Upload, FileDown } from "lucide-react";
 import moment from "moment";
 import PolicyFormModal from "@/components/policies/PolicyFormModal";
+import CSVImportModal from "@/components/shared/CSVImportModal";
+import { downloadCSV, downloadTemplate } from "@/lib/csvUtils";
+import { logAudit } from "@/lib/auditLogger";
 
 const STATUS_COLORS = {
   active: "bg-emerald-100 text-emerald-700",
@@ -27,6 +30,7 @@ export default function Policies() {
   const [renewalFilter, setRenewalFilter] = useState("all");
   const [showForm, setShowForm] = useState(false);
   const [editPolicy, setEditPolicy] = useState(null);
+  const [showImport, setShowImport] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -34,6 +38,46 @@ export default function Policies() {
   }, []);
 
   const isAdmin = user?.role === "admin";
+  const canImportExport = isAdmin || user?.role === "manager";
+
+  const POLICY_COLUMNS = ["policy_number", "client_name", "insurer", "policy_type", "premium", "status", "start_date", "renewal_date", "broker_name", "notes"];
+  const POLICY_HEADERS = ["Policy Number", "Client Name", "Insurer", "Type", "Premium (R)", "Status", "Start Date", "Renewal Date", "Broker", "Notes"];
+
+  const handleExport = () => {
+    const rows = filtered.map(p => ({
+      ...p,
+      start_date: p.start_date ? moment(p.start_date).format("YYYY-MM-DD") : "",
+      renewal_date: p.renewal_date ? moment(p.renewal_date).format("YYYY-MM-DD") : "",
+    }));
+    downloadCSV(rows, POLICY_COLUMNS, POLICY_HEADERS, "policies");
+    logAudit(user, "export_data", { record_type: "Policy", record_name: "Policies List", details: `Exported ${filtered.length} records` });
+  };
+
+  const handleImport = async (validRows) => {
+    let success = 0;
+    const skipped = [];
+    for (const row of validRows) {
+      try {
+        await base44.entities.Policy.create({
+          policy_number: row["Policy Number"] || row["policy_number"],
+          client_name: row["Client Name"] || row["client_name"],
+          insurer: row["Insurer"] || row["insurer"] || "",
+          policy_type: row["Type"] || row["policy_type"] || "other",
+          premium: parseFloat(row["Premium (R)"] || row["premium"] || 0) || 0,
+          status: row["Status"] || row["status"] || "active",
+          start_date: row["Start Date"] || row["start_date"] || "",
+          renewal_date: row["Renewal Date"] || row["renewal_date"] || "",
+          notes: row["Notes"] || row["notes"] || "",
+        });
+        success++;
+      } catch (e) {
+        skipped.push({ row: row._rowIndex, reason: e.message || "Failed to create" });
+      }
+    }
+    queryClient.invalidateQueries({ queryKey: ["policies"] });
+    logAudit(user, "import_data", { record_type: "Policy", record_name: "Policies Import", details: `Imported ${success}, skipped ${skipped.length}` });
+    return { success, skipped };
+  };
 
   const { data: policies = [], isLoading } = useQuery({
     queryKey: ["policies", user?.email],
@@ -77,9 +121,24 @@ export default function Policies() {
           <h2 className="text-xl font-bold text-[#1a2744]">Policies & Renewals</h2>
           <p className="text-sm text-gray-400">{filtered.length} polic{filtered.length !== 1 ? "ies" : "y"} · {renewalsNext30} renewing in 30 days</p>
         </div>
-        <Button onClick={() => { setEditPolicy(null); setShowForm(true); }} className="bg-[#1a2744] hover:bg-[#243556]">
-          <Plus className="w-4 h-4 mr-2" /> New Policy
-        </Button>
+        <div className="flex items-center gap-2">
+          {canImportExport && (
+            <>
+              <Button variant="outline" size="sm" onClick={() => downloadTemplate(POLICY_COLUMNS, POLICY_HEADERS, "policies")} title="Download CSV Template">
+                <FileDown className="w-3.5 h-3.5 mr-1.5" /> Template
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setShowImport(true)}>
+                <Upload className="w-3.5 h-3.5 mr-1.5" /> Import
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleExport}>
+                <Download className="w-3.5 h-3.5 mr-1.5" /> Export
+              </Button>
+            </>
+          )}
+          <Button onClick={() => { setEditPolicy(null); setShowForm(true); }} className="bg-[#1a2744] hover:bg-[#243556]">
+            <Plus className="w-4 h-4 mr-2" /> New Policy
+          </Button>
+        </div>
       </div>
 
       <Card className="p-4 border-0 shadow-sm">
@@ -174,6 +233,17 @@ export default function Policies() {
         user={user}
         policy={editPolicy}
         clients={clients}
+      />
+
+      <CSVImportModal
+        open={showImport}
+        onClose={() => setShowImport(false)}
+        entityName="Policies"
+        columns={POLICY_COLUMNS}
+        headers={POLICY_HEADERS}
+        requiredFields={["policy_number", "client_name", "insurer", "policy_type"]}
+        onImport={handleImport}
+        templateFilename="policies"
       />
     </div>
   );

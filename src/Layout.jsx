@@ -5,7 +5,7 @@ import { base44 } from "@/api/base44Client";
 import {
   LayoutDashboard, Users, KanbanSquare, FileText,
   CheckSquare, Shield, BarChart3, ChevronLeft, ChevronRight,
-  LogOut, Bell, Search, Menu, X, UserCog, AlertCircle, CalendarClock, ClipboardList
+  LogOut, Bell, Search, Menu, X, UserCog, AlertCircle, CalendarClock, ClipboardList, ScrollText
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import PendingApproval from "@/components/auth/PendingApproval";
@@ -30,6 +30,7 @@ const ADMIN_STAFF_NAV = [
 ];
 
 const ADMIN_EXTRA = { name: "Users", icon: UserCog, page: "UserManagement" };
+const ADMIN_AUDIT = { name: "Audit Logs", icon: ScrollText, page: "AuditLogs" };
 
 export default function Layout({ children, currentPageName }) {
   const [collapsed, setCollapsed]   = useState(false);
@@ -74,7 +75,7 @@ export default function Layout({ children, currentPageName }) {
   const isAdminStaff = user?.role === "admin_staff";
 
   const navItems = isAdmin
-    ? [...BROKER_NAV, ADMIN_EXTRA]
+    ? [...BROKER_NAV, ADMIN_EXTRA, ADMIN_AUDIT]
     : isAdminStaff
     ? ADMIN_STAFF_NAV
     : BROKER_NAV;
