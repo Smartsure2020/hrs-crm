@@ -70,7 +70,7 @@ export default function ClientFormModal({ open, onClose, onSuccess, user, client
   }, [client, open, user, defaultStatus]);
 
   useEffect(() => {
-    if (user?.role === "admin") {
+    if (user?.role === "admin" || user?.role === "admin_staff") {
       base44.entities.User.list().then(setBrokers);
     }
   }, [user]);
@@ -239,7 +239,7 @@ export default function ClientFormModal({ open, onClose, onSuccess, user, client
 
             {/* ── BROKER & REFERRAL ── */}
             <SectionTitle title="Broker & Referral" />
-            {user?.role === "admin" && brokers.length > 0 ? (
+            {(user?.role === "admin" || user?.role === "admin_staff") && brokers.length > 0 ? (
               <div className="col-span-2">
                 <Field label="Assigned Broker">
                   <Select value={form.assigned_broker} onValueChange={handleBrokerChange}>
