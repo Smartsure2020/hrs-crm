@@ -41,6 +41,13 @@ export default function ClientProfile() {
     base44.auth.me().then(setUser).catch(() => {});
   }, []);
 
+  const { data: clients = [] } = useQuery({
+    queryKey: ["client", clientId],
+    queryFn: () => base44.entities.Client.filter({ id: clientId }),
+    enabled: !!clientId,
+  });
+  const client = clients[0];
+
   // Log client view once user and client are both loaded
   useEffect(() => {
     if (user && client) {
@@ -51,13 +58,6 @@ export default function ClientProfile() {
       });
     }
   }, [user?.email, client?.id]);
-
-  const { data: clients = [] } = useQuery({
-    queryKey: ["client", clientId],
-    queryFn: () => base44.entities.Client.filter({ id: clientId }),
-    enabled: !!clientId,
-  });
-  const client = clients[0];
 
   const { data: deals = [] } = useQuery({
     queryKey: ["client-deals", clientId],
