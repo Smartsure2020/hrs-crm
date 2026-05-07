@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { base44 } from "@/api/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -192,7 +192,7 @@ export default function UserManagement() {
                       </Badge>
                     </TableCell>
                     <TableCell className="hidden lg:table-cell text-xs text-gray-400">
-                      {moment(u.created_date).format("MMM D, YYYY")}
+                      {moment(u.created_at).format("MMM D, YYYY")}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center justify-end gap-1">

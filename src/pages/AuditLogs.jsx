@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { base44 } from "@/api/client";
 import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -60,7 +60,7 @@ export default function AuditLogs() {
 
   const { data: logs = [], isLoading, refetch } = useQuery({
     queryKey: ["audit-logs"],
-    queryFn: () => base44.entities.AuditLog.list("-created_date", 1000),
+    queryFn: () => base44.entities.AuditLog.list("-created_at", 1000),
     enabled: !!user && isPrivileged,
   });
 
@@ -71,15 +71,15 @@ export default function AuditLogs() {
       log.record_name?.toLowerCase().includes(search.toLowerCase()) ||
       log.details?.toLowerCase().includes(search.toLowerCase());
     const matchAction = actionFilter === "all" || log.action === actionFilter;
-    const matchFrom = !dateFrom || moment(log.created_date).isSameOrAfter(moment(dateFrom), "day");
-    const matchTo = !dateTo || moment(log.created_date).isSameOrBefore(moment(dateTo), "day");
+    const matchFrom = !dateFrom || moment(log.created_at).isSameOrAfter(moment(dateFrom), "day");
+    const matchTo = !dateTo || moment(log.created_at).isSameOrBefore(moment(dateTo), "day");
     return matchSearch && matchAction && matchFrom && matchTo;
   });
 
   const handleExport = () => {
     downloadCSV(
       filtered,
-      ["created_date", "user_name", "user_role", "action", "record_type", "record_name", "details"],
+      ["created_at", "user_name", "user_role", "action", "record_type", "record_name", "details"],
       ["Timestamp", "User", "Role", "Action", "Record Type", "Record", "Details"],
       "audit-log"
     );
@@ -189,7 +189,7 @@ export default function AuditLogs() {
                 filtered.map(log => (
                   <TableRow key={log.id} className="hover:bg-gray-50/60">
                     <TableCell className="text-xs text-gray-500 whitespace-nowrap">
-                      {moment(log.created_date).format("MMM D, YYYY HH:mm")}
+                      {moment(log.created_at).format("MMM D, YYYY HH:mm")}
                     </TableCell>
                     <TableCell>
                       <div>

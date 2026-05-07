@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import { base44 } from "@/api/client";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -33,7 +33,7 @@ export default function InsurerReport({ user }) {
 
   const { data: policies = [], isLoading } = useQuery({
     queryKey: ["policies-insurer-report"],
-    queryFn: () => base44.entities.Policy.list("-created_date", 1000),
+    queryFn: () => base44.entities.Policy.list("-created_at", 1000),
     enabled: !!user,
   });
 

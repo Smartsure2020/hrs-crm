@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { base44 } from "@/api/base44Client";
+import { base44 } from "@/api/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
@@ -83,8 +83,8 @@ export default function Pipeline() {
   const { data: rawDeals = [], isLoading } = useQuery({
     queryKey: ["deals", user?.email],
     queryFn: () => isAdmin
-      ? base44.entities.Deal.list("-created_date", 500)
-      : base44.entities.Deal.filter({ assigned_broker: user?.email }, "-created_date", 500),
+      ? base44.entities.Deal.list("-created_at", 500)
+      : base44.entities.Deal.filter({ assigned_broker: user?.email }, "-created_at", 500),
     enabled: !!user,
   });
 

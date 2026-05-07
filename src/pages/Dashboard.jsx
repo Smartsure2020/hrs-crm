@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { base44 } from "@/api/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import {
@@ -48,7 +48,7 @@ export default function Dashboard() {
 
   const { data: documents = [] } = useQuery({
     queryKey: ["documents-dash"],
-    queryFn: () => base44.entities.Document.list("-created_date", 5),
+    queryFn: () => base44.entities.Document.list("-created_at", 5),
     enabled: !!user && isAdminStaff,
   });
 
@@ -70,7 +70,7 @@ export default function Dashboard() {
 
   const { data: activities = [] } = useQuery({
     queryKey: ["activities"],
-    queryFn: () => base44.entities.ActivityLog.list("-created_date", 20),
+    queryFn: () => base44.entities.ActivityLog.list("-created_at", 20),
     enabled: !!user,
   });
 

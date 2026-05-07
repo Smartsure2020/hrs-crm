@@ -1,5 +1,5 @@
 import React from "react";
-import { base44 } from "@/api/base44Client";
+import { base44 } from "@/api/client";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { RefreshCw } from "lucide-react";
@@ -23,13 +23,13 @@ export default function DashboardCharts({ user }) {
 
   const { data: deals = [], isLoading: loadingDeals } = useQuery({
     queryKey: ["deals-report"],
-    queryFn: () => base44.entities.Deal.list("-created_date", 1000),
+    queryFn: () => base44.entities.Deal.list("-created_at", 1000),
     enabled: !!user,
   });
 
   const { data: policies = [] } = useQuery({
     queryKey: ["policies-report"],
-    queryFn: () => base44.entities.Policy.list("-created_date", 1000),
+    queryFn: () => base44.entities.Policy.list("-created_at", 1000),
     enabled: !!user,
   });
 
@@ -54,7 +54,7 @@ export default function DashboardCharts({ user }) {
     const m = moment().subtract(i, "months");
     const monthDeals = deals.filter(d =>
       ["won", "policy_bound"].includes(d.stage) &&
-      moment(d.created_date).isSame(m, "month")
+      moment(d.created_at).isSame(m, "month")
     );
     monthlyData.push({
       name: m.format("MMM"),

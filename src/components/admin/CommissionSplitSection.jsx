@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import { base44 } from "@/api/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,7 +14,7 @@ export default function CommissionSplitSection() {
 
   const { data: splits = [] } = useQuery({
     queryKey: ["commission-splits"],
-    queryFn: () => base44.entities.CommissionSplit.list("-created_date", 100),
+    queryFn: () => base44.entities.CommissionSplit.list("-created_at", 100),
   });
 
   const { data: brokers = [] } = useQuery({

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { base44 } from "@/api/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -50,16 +50,16 @@ export default function Documents() {
   const { data: documents = [], isLoading } = useQuery({
     queryKey: ["documents", user?.email],
     queryFn: () => isAdmin
-      ? base44.entities.Document.list("-created_date", 500)
-      : base44.entities.Document.filter({ uploaded_by: user?.email }, "-created_date", 500),
+      ? base44.entities.Document.list("-created_at", 500)
+      : base44.entities.Document.filter({ uploaded_by: user?.email }, "-created_at", 500),
     enabled: !!user,
   });
 
   const { data: clients = [] } = useQuery({
     queryKey: ["clients-list", user?.email],
     queryFn: () => user?.role === "admin"
-      ? base44.entities.Client.list("-created_date", 500)
-      : base44.entities.Client.filter({ assigned_broker: user?.email }, "-created_date", 500),
+      ? base44.entities.Client.list("-created_at", 500)
+      : base44.entities.Client.filter({ assigned_broker: user?.email }, "-created_at", 500),
     enabled: !!user,
   });
 
@@ -161,7 +161,7 @@ export default function Documents() {
                       </Badge>
                     </TableCell>
                     <TableCell className="hidden md:table-cell text-sm text-gray-500">{doc.client_name || "—"}</TableCell>
-                    <TableCell className="hidden md:table-cell text-xs text-gray-400">{moment(doc.created_date).format("MMM D, YYYY")}</TableCell>
+                    <TableCell className="hidden md:table-cell text-xs text-gray-400">{moment(doc.created_at).format("MMM D, YYYY")}</TableCell>
                     <TableCell className="hidden lg:table-cell text-xs text-gray-400">v{doc.version || 1}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">

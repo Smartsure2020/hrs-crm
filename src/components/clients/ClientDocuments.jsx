@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { base44 } from "@/api/base44Client";
+import { base44 } from "@/api/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -189,7 +189,7 @@ export default function ClientDocuments({ documents, clientId, clientName, user 
                     {DOC_TYPES.find(t => t.value === doc.document_type)?.label || "Other"}
                   </Badge>
                   <span className="text-[10px] text-gray-400">
-                    Uploaded {moment(doc.created_date).format("D MMM YYYY")}
+                    Uploaded {moment(doc.created_at).format("D MMM YYYY")}
                     {doc.uploaded_by ? ` by ${doc.uploaded_by}` : ""}
                   </span>
                 </div>

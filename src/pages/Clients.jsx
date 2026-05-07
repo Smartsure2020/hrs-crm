@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { base44 } from "@/api/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -87,8 +87,8 @@ export default function Clients() {
   const { data: clients = [], isLoading } = useQuery({
     queryKey: ["clients", user?.email],
     queryFn: () => canSeeAll
-      ? base44.entities.Client.filter({ status: "active" }, "-created_date", 500)
-      : base44.entities.Client.filter({ assigned_broker: user?.email, status: "active" }, "-created_date", 500),
+      ? base44.entities.Client.filter({ status: "active" }, "-created_at", 500)
+      : base44.entities.Client.filter({ assigned_broker: user?.email, status: "active" }, "-created_at", 500),
     enabled: !!user,
   });
 

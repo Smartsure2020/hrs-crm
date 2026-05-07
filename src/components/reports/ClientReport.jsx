@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import { base44 } from "@/api/client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,7 +15,7 @@ const COLUMNS = [
   "id", "client_type", "broker_name", "client_name", "initials",
   "first_name", "surname", "company_name", "company_reg",
   "id_number", "email", "phone", "notes",
-  "created_date"
+  "created_at"
 ];
 
 const HEADERS = [
@@ -36,7 +36,7 @@ export default function ClientReport({ user }) {
 
   const { data: clients = [], isLoading } = useQuery({
     queryKey: ["clients-report"],
-    queryFn: () => base44.entities.Client.list("-created_date", 2000),
+    queryFn: () => base44.entities.Client.list("-created_at", 2000),
     enabled: !!user,
   });
 
@@ -49,16 +49,16 @@ export default function ClientReport({ user }) {
   const filtered = clients.filter(c => {
     const matchAdvisor = advisorFilter === "all" || c.assigned_broker === advisorFilter;
     const matchType = typeFilter === "all" || c.client_type === typeFilter;
-    const matchFrom = !dateFrom || moment(c.created_date).isSameOrAfter(moment(dateFrom), "day");
-    const matchTo = !dateTo || moment(c.created_date).isSameOrBefore(moment(dateTo), "day");
+    const matchFrom = !dateFrom || moment(c.created_at).isSameOrAfter(moment(dateFrom), "day");
+    const matchTo = !dateTo || moment(c.created_at).isSameOrBefore(moment(dateTo), "day");
     return matchAdvisor && matchType && matchFrom && matchTo;
   });
 
   const exportRows = filtered.map(c => {
     const row = {};
     COLUMNS.forEach(col => {
-      if (col === "created_date") {
-        row[col] = c.created_date ? moment(c.created_date).format("YYYY-MM-DD") : "";
+      if (col === "created_at") {
+        row[col] = c.created_at ? moment(c.created_at).format("YYYY-MM-DD") : "";
       } else {
         row[col] = clean(c[col]);
       }
@@ -161,8 +161,8 @@ export default function ClientReport({ user }) {
                     <TableRow key={c.id} className="hover:bg-gray-50/50">
                       {COLUMNS.map((col, ci) => (
                         <TableCell key={ci} className="text-xs text-gray-700 whitespace-nowrap">
-                          {col === "created_date"
-                            ? (c.created_date ? moment(c.created_date).format("YYYY-MM-DD") : "")
+                          {col === "created_at"
+                            ? (c.created_at ? moment(c.created_at).format("YYYY-MM-DD") : "")
                             : clean(c[col]) || ""}
                         </TableCell>
                       ))}

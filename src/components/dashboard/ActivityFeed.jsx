@@ -40,7 +40,7 @@ export default function ActivityFeed({ activities }) {
               <div className="flex-1 min-w-0">
                 <p className="text-sm text-gray-700 leading-snug">{activity.action}</p>
                 <p className="text-xs text-gray-400 mt-0.5">
-                  {activity.user_name || activity.user_email} · {moment(activity.created_date).fromNow()}
+                  {activity.user_name || activity.user_email} · {moment(activity.created_at).fromNow()}
                 </p>
               </div>
             </div>

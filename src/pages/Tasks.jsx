@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { base44 } from "@/api/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -50,8 +50,8 @@ export default function Tasks() {
   const { data: clients = [] } = useQuery({
     queryKey: ["clients-list", user?.email],
     queryFn: () => isAdmin
-      ? base44.entities.Client.list("-created_date", 500)
-      : base44.entities.Client.filter({ assigned_broker: user?.email }, "-created_date", 500),
+      ? base44.entities.Client.list("-created_at", 500)
+      : base44.entities.Client.filter({ assigned_broker: user?.email }, "-created_at", 500),
     enabled: !!user,
   });
 

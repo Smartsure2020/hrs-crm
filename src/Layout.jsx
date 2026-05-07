@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { base44 } from "@/api/base44Client";
+import { base44 } from "@/api/client";
 import {
   LayoutDashboard, Users, KanbanSquare, FileText,
   CheckSquare, Shield, BarChart3, ChevronLeft, ChevronRight,
