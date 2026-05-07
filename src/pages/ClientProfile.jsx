@@ -9,8 +9,9 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ArrowLeft, Mail, Phone, MapPin, Building2, Edit2,
-  Shield, Briefcase, FileText, CheckSquare, RefreshCw, Plus, ClipboardList, AlertCircle
+  Shield, Briefcase, FileText, CheckSquare, RefreshCw, Plus, ClipboardList, AlertCircle, Pencil
 } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import ClientDocuments from "@/components/clients/ClientDocuments";
 import ClientClaims from "@/components/clients/ClientClaims";
 import moment from "moment";
@@ -194,34 +195,50 @@ export default function ClientProfile() {
 
         <TabsContent value="policies">
           <Card className="border-0 shadow-sm">
-            <div className="flex items-center justify-between px-4 pt-4">
+            <div className="flex items-center justify-between px-4 pt-4 pb-2">
               <p className="text-sm font-medium text-gray-700">{policies.length} polic{policies.length !== 1 ? 'ies' : 'y'}</p>
               <Button size="sm" className="bg-[#1a2744] hover:bg-[#243556] h-7 text-xs" onClick={() => { setEditPolicy(null); setShowPolicy(true); }}>
                 <Plus className="w-3.5 h-3.5 mr-1" /> New Policy
               </Button>
             </div>
-            <CardContent className="p-0 mt-3">
-              {policies.length === 0 ? (
-                <div className="text-center py-12 text-gray-400"><Shield className="w-8 h-8 mx-auto mb-2 opacity-30" />No policies yet</div>
-              ) : (
-                <div className="divide-y">
-                  {policies.map(policy => (
-                    <div key={policy.id} className="p-4 hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => { setEditPolicy(policy); setShowPolicy(true); }}>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-medium text-sm">{policy.policy_number} — {policy.insurer}</p>
-                          <p className="text-xs text-gray-400 mt-0.5">{policy.policy_type?.replace(/_/g," ")} · R{policy.premium?.toLocaleString() || 0}/yr</p>
-                        </div>
-                        <div className="text-right">
-                          <Badge className={`text-[10px] ${policy.status === "active" ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-600"}`}>{policy.status}</Badge>
-                          {policy.renewal_date && <p className="text-[10px] text-gray-400 mt-1">Renews {moment(policy.renewal_date).format("MMM D, YYYY")}</p>}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
+            {policies.length === 0 ? (
+              <CardContent className="py-12 text-center text-gray-400"><Shield className="w-8 h-8 mx-auto mb-2 opacity-30" />No policies yet</CardContent>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-gray-50/80">
+                      <TableHead className="text-xs font-medium">Policy #</TableHead>
+                      <TableHead className="text-xs font-medium">Insurer</TableHead>
+                      <TableHead className="text-xs font-medium hidden md:table-cell">Type</TableHead>
+                      <TableHead className="text-xs font-medium hidden sm:table-cell">Monthly</TableHead>
+                      <TableHead className="text-xs font-medium">Annual</TableHead>
+                      <TableHead className="text-xs font-medium hidden lg:table-cell">Renewal</TableHead>
+                      <TableHead className="text-xs font-medium">Status</TableHead>
+                      <TableHead className="w-8"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {policies.map(policy => (
+                      <TableRow key={policy.id} className="hover:bg-blue-50/20 cursor-pointer" onClick={() => { setEditPolicy(policy); setShowPolicy(true); }}>
+                        <TableCell className="font-medium text-sm">{policy.policy_number}</TableCell>
+                        <TableCell className="text-sm font-semibold text-[#1a2744]">{policy.insurer}</TableCell>
+                        <TableCell className="text-xs text-gray-500 hidden md:table-cell capitalize">{policy.policy_type?.replace(/_/g," ")}</TableCell>
+                        <TableCell className="text-sm hidden sm:table-cell">R{policy.monthly_premium?.toLocaleString() || "—"}</TableCell>
+                        <TableCell className="text-sm font-medium">R{policy.premium?.toLocaleString() || 0}</TableCell>
+                        <TableCell className="text-xs text-gray-400 hidden lg:table-cell">{policy.renewal_date ? moment(policy.renewal_date).format("MMM D, YYYY") : "—"}</TableCell>
+                        <TableCell>
+                          <Badge className={`text-[10px] ${policy.status === "active" ? "bg-emerald-100 text-emerald-700" : policy.status === "pending" ? "bg-yellow-100 text-yellow-700" : "bg-gray-100 text-gray-600"}`}>{policy.status}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Pencil className="w-3.5 h-3.5 text-gray-300 hover:text-[#1a2744]" />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
           </Card>
         </TabsContent>
 

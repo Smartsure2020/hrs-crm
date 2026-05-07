@@ -8,9 +8,15 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Trash2, Paperclip, X, FileText } from "lucide-react";
+import { Loader2, Trash2, Paperclip, X, FileText, Search } from "lucide-react";
 
 const POLICY_TYPES = ["motor","household","commercial","liability","life","health","marine","engineering","crop","other"];
+
+const INSURERS = [
+  "ONE","ALPHA","HOLLARD","CIB","SANTAM","ECHELON","PROTOCOL","INFINITI",
+  "TRANQUILE/KING PRICE","PALADIN","TRA","AC&E","CROSS COUNTRY","ITOO",
+  "DISCOVERY","MOMENTUM","BRYTE","GENLIB","GUARDRISK","MARABILIS"
+];
 
 export default function PolicyFormModal({ open, onClose, onSuccess, user, policy, clients, defaultClientId, defaultClientName }) {
   const [loading, setLoading] = useState(false);
@@ -18,26 +24,44 @@ export default function PolicyFormModal({ open, onClose, onSuccess, user, policy
   const [pendingFile, setPendingFile] = useState(null);
   const [docName, setDocName] = useState("");
   const [existingDocs, setExistingDocs] = useState([]);
+  const [insurerSearch, setInsurerSearch] = useState("");
+  const [brokers, setBrokers] = useState([]);
+
   const [form, setForm] = useState({
     policy_number: "", client_id: "", client_name: "", insurer: "",
-    policy_type: "motor", premium: "", start_date: "", renewal_date: "",
+    policy_type: "motor", monthly_premium: "", premium: "",
+    start_date: "", renewal_date: "",
     assigned_broker: user?.email || "", broker_name: user?.full_name || "",
     status: "active", notes: ""
   });
 
   useEffect(() => {
+    if (open && (user?.role === "admin" || user?.role === "admin_staff")) {
+      base44.entities.User.list().then(setBrokers).catch(() => {});
+    }
+  }, [open, user]);
+
+  useEffect(() => {
     if (policy) {
-      setForm({ ...policy, premium: policy.premium || "", start_date: policy.start_date || "", renewal_date: policy.renewal_date || "" });
+      setForm({
+        ...policy,
+        monthly_premium: policy.monthly_premium || "",
+        premium: policy.premium || "",
+        start_date: policy.start_date || "",
+        renewal_date: policy.renewal_date || ""
+      });
     } else {
       setForm({
         policy_number: "", client_id: defaultClientId || "", client_name: defaultClientName || "", insurer: "",
-        policy_type: "motor", premium: "", start_date: "", renewal_date: "",
+        policy_type: "motor", monthly_premium: "", premium: "",
+        start_date: "", renewal_date: "",
         assigned_broker: user?.email || "", broker_name: user?.full_name || "",
         status: "active", notes: ""
       });
     }
     setPendingFile(null);
     setDocName("");
+    setInsurerSearch("");
   }, [policy, open]);
 
   useEffect(() => {
@@ -48,10 +72,24 @@ export default function PolicyFormModal({ open, onClose, onSuccess, user, policy
     }
   }, [policy]);
 
+  // Auto-calculate annual premium from monthly
+  const handleMonthlyChange = (val) => {
+    const monthly = parseFloat(val) || 0;
+    setForm(f => ({
+      ...f,
+      monthly_premium: val,
+      premium: monthly > 0 ? String((monthly * 12).toFixed(2)) : f.premium
+    }));
+  };
+
   const handleSubmit = async () => {
     if (!form.policy_number || !form.insurer) return;
     setLoading(true);
-    const data = { ...form, premium: form.premium ? parseFloat(form.premium) : 0 };
+    const data = {
+      ...form,
+      monthly_premium: form.monthly_premium ? parseFloat(form.monthly_premium) : 0,
+      premium: form.premium ? parseFloat(form.premium) : 0
+    };
     let policyId = policy?.id;
     if (policy) {
       await base44.entities.Policy.update(policy.id, data);
@@ -59,7 +97,6 @@ export default function PolicyFormModal({ open, onClose, onSuccess, user, policy
       const created = await base44.entities.Policy.create(data);
       policyId = created.id;
     }
-    // Upload pending document
     if (pendingFile && policyId) {
       setUploadingDoc(true);
       const { file_url } = await base44.integrations.Core.UploadFile({ file: pendingFile });
@@ -94,22 +131,64 @@ export default function PolicyFormModal({ open, onClose, onSuccess, user, policy
     onClose();
   };
 
+  const handleBrokerChange = (email) => {
+    const broker = brokers.find(b => b.email === email);
+    setForm(f => ({ ...f, assigned_broker: email, broker_name: broker?.full_name || email }));
+  };
+
+  const filteredInsurers = INSURERS.filter(i => i.toLowerCase().includes(insurerSearch.toLowerCase()));
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle className="text-[#1a2744]">{policy ? "Edit Policy" : "New Policy"}</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4 py-2 max-h-[60vh] overflow-y-auto">
+        <div className="space-y-4 py-2 max-h-[65vh] overflow-y-auto pr-1">
           <div className="grid grid-cols-2 gap-3">
+
             <div>
               <Label className="text-xs text-gray-500">Policy Number *</Label>
               <Input value={form.policy_number} onChange={e => setForm({...form, policy_number: e.target.value})} />
             </div>
+
             <div>
-              <Label className="text-xs text-gray-500">Insurer *</Label>
-              <Input value={form.insurer} onChange={e => setForm({...form, insurer: e.target.value})} />
+              <Label className="text-xs text-gray-500">Status</Label>
+              <Select value={form.status} onValueChange={v => setForm({...form, status: v})}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                  <SelectItem value="expired">Expired</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
+
+            <div className="col-span-2">
+              <Label className="text-xs text-gray-500">Insurer *</Label>
+              <Select value={form.insurer} onValueChange={v => setForm({...form, insurer: v})}>
+                <SelectTrigger><SelectValue placeholder="Select insurer..." /></SelectTrigger>
+                <SelectContent>
+                  <div className="px-2 py-1.5 sticky top-0 bg-white border-b">
+                    <div className="relative">
+                      <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                      <input
+                        className="w-full pl-7 pr-2 py-1 text-xs border rounded-md outline-none focus:ring-1 focus:ring-[#1a2744]"
+                        placeholder="Search insurer..."
+                        value={insurerSearch}
+                        onChange={e => setInsurerSearch(e.target.value)}
+                        onKeyDown={e => e.stopPropagation()}
+                      />
+                    </div>
+                  </div>
+                  {filteredInsurers.map(i => (
+                    <SelectItem key={i} value={i}>{i}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             <div>
               <Label className="text-xs text-gray-500">Policy Type</Label>
               <Select value={form.policy_type} onValueChange={v => setForm({...form, policy_type: v})}>
@@ -119,10 +198,17 @@ export default function PolicyFormModal({ open, onClose, onSuccess, user, policy
                 </SelectContent>
               </Select>
             </div>
+
             <div>
-              <Label className="text-xs text-gray-500">Premium (ZAR)</Label>
-              <Input type="number" value={form.premium} onChange={e => setForm({...form, premium: e.target.value})} />
+              <Label className="text-xs text-gray-500">Monthly Premium (ZAR)</Label>
+              <Input type="number" placeholder="0.00" value={form.monthly_premium} onChange={e => handleMonthlyChange(e.target.value)} />
             </div>
+
+            <div>
+              <Label className="text-xs text-gray-500">Annual Premium (ZAR)</Label>
+              <Input type="number" placeholder="Auto-calculated" value={form.premium} onChange={e => setForm({...form, premium: e.target.value})} />
+            </div>
+
             {clients?.length > 0 && (
               <div className="col-span-2">
                 <Label className="text-xs text-gray-500">Client</Label>
@@ -137,26 +223,33 @@ export default function PolicyFormModal({ open, onClose, onSuccess, user, policy
                 </Select>
               </div>
             )}
+
             <div>
-              <Label className="text-xs text-gray-500">Start Date</Label>
+              <Label className="text-xs text-gray-500">Inception Date</Label>
               <Input type="date" value={form.start_date} onChange={e => setForm({...form, start_date: e.target.value})} />
             </div>
             <div>
               <Label className="text-xs text-gray-500">Renewal Date</Label>
               <Input type="date" value={form.renewal_date} onChange={e => setForm({...form, renewal_date: e.target.value})} />
             </div>
-            <div>
-              <Label className="text-xs text-gray-500">Status</Label>
-              <Select value={form.status} onValueChange={v => setForm({...form, status: v})}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="expired">Expired</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+
+            {(user?.role === "admin" || user?.role === "admin_staff") && brokers.length > 0 ? (
+              <div className="col-span-2">
+                <Label className="text-xs text-gray-500">Assigned Broker</Label>
+                <Select value={form.assigned_broker || ""} onValueChange={handleBrokerChange}>
+                  <SelectTrigger><SelectValue placeholder="Select broker" /></SelectTrigger>
+                  <SelectContent>
+                    {brokers.map(b => <SelectItem key={b.email} value={b.email}>{b.full_name || b.email}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <div className="col-span-2">
+                <Label className="text-xs text-gray-500">Assigned Broker</Label>
+                <Input value={form.broker_name || form.assigned_broker || ""} readOnly className="bg-gray-50" />
+              </div>
+            )}
+
             <div>
               <Label className="text-xs text-gray-500">Broker Commission %</Label>
               <Input type="number" min="0" max="100" placeholder="e.g. 70" value={form.broker_commission_pct || ""} onChange={e => setForm({...form, broker_commission_pct: e.target.value})} />
@@ -165,10 +258,12 @@ export default function PolicyFormModal({ open, onClose, onSuccess, user, policy
               <Label className="text-xs text-gray-500">HRS Commission %</Label>
               <Input type="number" min="0" max="100" placeholder="e.g. 30" value={form.hrs_commission_pct || ""} onChange={e => setForm({...form, hrs_commission_pct: e.target.value})} />
             </div>
+
             <div className="col-span-2">
               <Label className="text-xs text-gray-500">Notes</Label>
               <Textarea value={form.notes || ""} onChange={e => setForm({...form, notes: e.target.value})} rows={2} />
             </div>
+
             <div className="col-span-2">
               <Label className="text-xs text-gray-500">Attach Document</Label>
               {existingDocs.length > 0 && (
@@ -201,6 +296,7 @@ export default function PolicyFormModal({ open, onClose, onSuccess, user, policy
                 </label>
               )}
             </div>
+
           </div>
         </div>
         <DialogFooter className="flex justify-between">
@@ -208,7 +304,7 @@ export default function PolicyFormModal({ open, onClose, onSuccess, user, policy
           <div className="flex gap-2">
             <Button variant="outline" onClick={onClose}>Cancel</Button>
             <Button onClick={handleSubmit} disabled={loading || !form.policy_number || !form.insurer} className="bg-[#1a2744] hover:bg-[#243556]">
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : policy ? "Save" : "Create Policy"}
+              {loading || uploadingDoc ? <Loader2 className="w-4 h-4 animate-spin" /> : policy ? "Save" : "Create Policy"}
             </Button>
           </div>
         </DialogFooter>

@@ -20,6 +20,28 @@
     },
     "insurer": {
       "type": "string",
+      "enum": [
+        "ONE",
+        "ALPHA",
+        "HOLLARD",
+        "CIB",
+        "SANTAM",
+        "ECHELON",
+        "PROTOCOL",
+        "INFINITI",
+        "TRANQUILE/KING PRICE",
+        "PALADIN",
+        "TRA",
+        "AC&E",
+        "CROSS COUNTRY",
+        "ITOO",
+        "DISCOVERY",
+        "MOMENTUM",
+        "BRYTE",
+        "GENLIB",
+        "GUARDRISK",
+        "MARABILIS"
+      ],
       "description": "Insurance company"
     },
     "policy_type": {
@@ -38,6 +60,10 @@
       ],
       "description": "Type of insurance policy"
     },
+    "monthly_premium": {
+      "type": "number",
+      "description": "Monthly premium in ZAR"
+    },
     "premium": {
       "type": "number",
       "description": "Annual premium in ZAR"
@@ -45,7 +71,7 @@
     "start_date": {
       "type": "string",
       "format": "date",
-      "description": "Policy start date"
+      "description": "Policy start date (inception date)"
     },
     "renewal_date": {
       "type": "string",
@@ -64,9 +90,9 @@
       "type": "string",
       "enum": [
         "active",
-        "expired",
+        "pending",
         "cancelled",
-        "pending"
+        "expired"
       ],
       "default": "active",
       "description": "Policy status"

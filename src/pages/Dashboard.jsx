@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import {
   Users, Briefcase, Shield, CheckSquare, Send,
-  Clock, AlertTriangle, Plus, RefreshCw, UserCog
+  Clock, AlertTriangle, Plus, RefreshCw, UserCog, TrendingUp, DollarSign
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -93,6 +93,14 @@ export default function Dashboard() {
   const totalLeads = deals.filter(d => ["lead","lead_received","contacted"].includes(d.stage)).length;
   const quotesSent = deals.filter(d => ["quote_sent","quotes_received"].includes(d.stage)).length;
   const policyBound = deals.filter(d => ["won","policy_bound"].includes(d.stage)).length;
+
+  // Insurer/policy metrics for admin
+  const totalMonthlyPremium = policies.filter(p => p.status === "active").reduce((s, p) => s + (p.monthly_premium || 0), 0);
+  const insurerCounts = policies.reduce((acc, p) => { if (p.insurer) acc[p.insurer] = (acc[p.insurer] || 0) + 1; return acc; }, {});
+  const topInsurer = Object.entries(insurerCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "—";
+  const insurerPremiums = policies.reduce((acc, p) => { if (p.insurer) acc[p.insurer] = (acc[p.insurer] || 0) + (p.monthly_premium || 0); return acc; }, {});
+  const topInsurerByPremium = Object.entries(insurerPremiums).sort((a, b) => b[1] - a[1])[0]?.[0] || "—";
+
   const renewalsDue = policies.filter(p => {
     const renewal = moment(p.renewal_date);
     return renewal.isBetween(moment(), moment().add(30, "days"));
@@ -154,6 +162,59 @@ export default function Dashboard() {
           <Link to={createPageUrl("Policies")} className="block"><StatCard title="Policies" value={policies.length} icon={Shield} color="green" /></Link>
           <Link to={createPageUrl("Renewals")} className="block"><StatCard title="Renewals Due" value={renewalsDue} icon={Clock} color="orange" /></Link>
           <Link to={createPageUrl("Documents")} className="block"><StatCard title="Documents" value={documents.length} icon={Briefcase} color="purple" /></Link>
+        </div>
+      ) : isAdmin ? (
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+            <Link to={createPageUrl("Pipeline")} className="block"><StatCard title="Total Leads" value={totalLeads} icon={Users} color="blue" /></Link>
+            <Link to={createPageUrl("Pipeline")} className="block"><StatCard title="Quotes Sent" value={quotesSent} icon={Send} color="purple" /></Link>
+            <Link to={createPageUrl("Pipeline")} className="block"><StatCard title="Policies Bound" value={policyBound} icon={Shield} color="green" /></Link>
+            <Link to={createPageUrl("Renewals")} className="block"><StatCard title="Renewals Due" value={renewalsDue} icon={Clock} color="orange" /></Link>
+            <Link to={createPageUrl("Tasks")} className="block"><StatCard title="Due Today" value={tasksDueToday} icon={CheckSquare} color="cyan" /></Link>
+            <Link to={createPageUrl("Tasks")} className="block"><StatCard title="Overdue" value={tasksOverdue} icon={AlertTriangle} color="red" /></Link>
+          </div>
+          {/* Admin insurer/policy widgets */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <Link to={createPageUrl("Policies")} className="block">
+              <StatCard title="Total Policies" value={policies.filter(p => p.status === "active").length} icon={Shield} color="green" />
+            </Link>
+            <Link to={createPageUrl("Reports")} className="block">
+              <div className="bg-white rounded-xl border border-border shadow-sm p-5 hover:shadow-md transition-shadow">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs text-gray-400 uppercase tracking-wider font-medium">Monthly Premium</p>
+                  <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+                    <DollarSign className="w-4 h-4 text-emerald-600" />
+                  </div>
+                </div>
+                <p className="text-xl font-bold text-[#1a2744]">R{totalMonthlyPremium.toLocaleString()}</p>
+                <p className="text-xs text-gray-400 mt-1">Active policies</p>
+              </div>
+            </Link>
+            <Link to={createPageUrl("Reports")} className="block">
+              <div className="bg-white rounded-xl border border-border shadow-sm p-5 hover:shadow-md transition-shadow">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs text-gray-400 uppercase tracking-wider font-medium">Top Insurer</p>
+                  <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+                    <TrendingUp className="w-4 h-4 text-blue-600" />
+                  </div>
+                </div>
+                <p className="text-base font-bold text-[#1a2744] truncate">{topInsurerByPremium}</p>
+                <p className="text-xs text-gray-400 mt-1">By monthly premium</p>
+              </div>
+            </Link>
+            <Link to={createPageUrl("Reports")} className="block">
+              <div className="bg-white rounded-xl border border-border shadow-sm p-5 hover:shadow-md transition-shadow">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs text-gray-400 uppercase tracking-wider font-medium">Insurers Active</p>
+                  <div className="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center">
+                    <Briefcase className="w-4 h-4 text-purple-600" />
+                  </div>
+                </div>
+                <p className="text-2xl font-bold text-[#1a2744]">{Object.keys(insurerCounts).length}</p>
+                <p className="text-xs text-gray-400 mt-1">Unique insurers</p>
+              </div>
+            </Link>
+          </div>
         </div>
       ) : (
         <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">

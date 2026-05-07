@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RefreshCw, BarChart3, ShieldAlert, ChevronRight } from "lucide-react";
 import ClientReport from "@/components/reports/ClientReport";
 import DashboardCharts from "@/components/reports/DashboardCharts";
+import InsurerReport from "@/components/reports/InsurerReport";
 
 const REPORTS = [
   {
@@ -20,6 +21,12 @@ const REPORTS = [
     name: "Pipeline & Performance Charts",
     description: "Visual charts for pipeline distribution, monthly premiums, broker performance, and renewals.",
     category: "Pipeline",
+  },
+  {
+    id: "insurer_report",
+    name: "Insurer Report",
+    description: "Policies per insurer, monthly premium totals by insurer, and broker breakdown. Includes pie and bar charts.",
+    category: "Policies",
   },
 ];
 
@@ -93,6 +100,8 @@ export default function Reports() {
         <ClientReport user={user} />
       ) : activeReport === "dashboard_charts" ? (
         <DashboardCharts user={user} />
+      ) : activeReport === "insurer_report" ? (
+        <InsurerReport user={user} />
       ) : null}
     </div>
   );
