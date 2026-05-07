@@ -14,7 +14,7 @@ import { Plus, Search, Shield, RefreshCw, AlertTriangle, Clock, Download, Upload
 const INSURERS = [
   "ONE","ALPHA","HOLLARD","CIB","SANTAM","ECHELON","PROTOCOL","INFINITI",
   "TRANQUILE/KING PRICE","PALADIN","TRA","AC&E","CROSS COUNTRY","ITOO",
-  "DISCOVERY","MOMENTUM","BRYTE","GENLIB","GUARDRISK","MARABILIS"
+  "DISCOVERY","MOMENTUM","BRYTE","GENLIB","GUARDRISK","MARABILIS","STRATYS","OTHER"
 ];
 import moment from "moment";
 import PolicyFormModal from "@/components/policies/PolicyFormModal";

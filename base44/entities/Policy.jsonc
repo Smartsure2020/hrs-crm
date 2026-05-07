@@ -40,7 +40,9 @@
         "BRYTE",
         "GENLIB",
         "GUARDRISK",
-        "MARABILIS"
+        "MARABILIS",
+        "STRATYS",
+        "OTHER"
       ],
       "description": "Insurance company"
     },

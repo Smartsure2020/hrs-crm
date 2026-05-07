@@ -15,7 +15,7 @@ const POLICY_TYPES = ["motor","household","commercial","liability","life","healt
 const INSURERS = [
   "ONE","ALPHA","HOLLARD","CIB","SANTAM","ECHELON","PROTOCOL","INFINITI",
   "TRANQUILE/KING PRICE","PALADIN","TRA","AC&E","CROSS COUNTRY","ITOO",
-  "DISCOVERY","MOMENTUM","BRYTE","GENLIB","GUARDRISK","MARABILIS"
+  "DISCOVERY","MOMENTUM","BRYTE","GENLIB","GUARDRISK","MARABILIS","STRATYS","OTHER"
 ];
 
 export default function PolicyFormModal({ open, onClose, onSuccess, user, policy, clients, defaultClientId, defaultClientName }) {
