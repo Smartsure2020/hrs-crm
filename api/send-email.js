@@ -1,5 +1,5 @@
 // Email sending handler via Resend
-// Dev: logs the payload and returns success when RESEND_API_KEY is absent
+// Dev: logs the payload and returns success when RESEND_API_KEY_C is absent
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -11,14 +11,14 @@ export default async function handler(req, res) {
   }
 
   // Dev stub
-  if (!process.env.RESEND_API_KEY) {
+  if (!process.env.RESEND_API_KEY_C) {
     console.log('[send-email dev stub]', { to, subject });
-    return res.status(200).json({ id: 'dev-stub', message: 'Email logged (no RESEND_API_KEY)' });
+    return res.status(200).json({ id: 'dev-stub', message: 'Email logged (no RESEND_API_KEY_C)' });
   }
 
   try {
     const { Resend } = await import('resend');
-    const resend = new Resend(process.env.RESEND_API_KEY);
+    const resend = new Resend(process.env.RESEND_API_KEY_C);
     const { data, error } = await resend.emails.send({
       from: process.env.EMAIL_FROM || 'noreply@hrsinsurance.co.za',
       to,
