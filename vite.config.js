@@ -13,7 +13,10 @@ function apiDevPlugin() {
       const eq = trimmed.indexOf('=');
       if (eq === -1) return;
       const key = trimmed.slice(0, eq).trim();
-      const val = trimmed.slice(eq + 1).trim();
+      const raw = trimmed.slice(eq + 1).trim();
+      const val = raw.startsWith('"') && raw.endsWith('"') ? raw.slice(1, -1)
+                : raw.startsWith("'") && raw.endsWith("'") ? raw.slice(1, -1)
+                : raw;
       if (!(key in process.env)) process.env[key] = val;
     });
   }
