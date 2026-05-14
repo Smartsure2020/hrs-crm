@@ -13,6 +13,7 @@ const pct = z.preprocess(
 );
 
 const s = z.string().optional();
+const req = z.string().min(1, 'Required');
 
 export const SCHEMAS = {
   clients: z.object({
@@ -50,7 +51,7 @@ export const SCHEMAS = {
 
   deals: z.object({
     client_id:         s,
-    client_name:       s,
+    client_name:       req,
     policy_type:       z.enum(['personal','commercial']).optional(),
     estimated_premium: num,
     stage:             z.enum([
@@ -68,15 +69,15 @@ export const SCHEMAS = {
   }),
 
   policies: z.object({
-    policy_number:     s,
+    policy_number:     req,
     client_id:         s,
-    client_name:       s,
+    client_name:       req,
     deal_id:           s,
-    insurer:           s,
+    insurer:           req,
     policy_type:       z.enum([
       'motor','household','commercial','liability','life',
       'health','marine','engineering','crop','other',
-    ]).optional(),
+    ]),
     monthly_premium:   num,
     premium:           num,
     start_date:        s,
@@ -103,14 +104,14 @@ export const SCHEMAS = {
     policy_id:        s,
     description:      s,
     notes:            s,
-    client_id:        s,
-    client_name:      s,
+    client_id:        req,
+    client_name:      req,
     assigned_broker:  s,
   }),
 
   documents: z.object({
-    name:          s,
-    file_url:      s,
+    name:          req,
+    file_url:      req,
     policy_id:     s,
     deal_id:       s,
     client_id:     s,
@@ -121,12 +122,12 @@ export const SCHEMAS = {
   }),
 
   tasks: z.object({
-    title:         s,
+    title:         req,
     description:   s,
     client_id:     s,
     client_name:   s,
     deal_id:       s,
-    due_date:      s,
+    due_date:      req,
     assigned_to:   s,
     assigned_name: s,
     status:        z.enum(['pending','in_progress','completed','overdue']).optional(),
@@ -148,9 +149,9 @@ export const SCHEMAS = {
 
   'audit-logs': z.object({
     user_name:   s,
-    user_email:  s,
+    user_email:  req,
     user_role:   s,
-    action:      s,
+    action:      req,
     record_type: s,
     record_id:   s,
     record_name: s,
