@@ -2,89 +2,69 @@ import React, { useState, useMemo } from "react";
 import { base44 } from "@/api/client";
 import { useAuth, useUserRole } from "@/lib/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, Plus, RefreshCw, Trash2, MoveRight, X } from "lucide-react";
+import { Plus, RefreshCw, Trash2, MoveRight, X } from "lucide-react";
+import { useInlineEdit } from "@/hooks/useInlineEdit";
+import { STAGES, ACTIVE_STAGES, normalizeStage, toDbStage } from "@/components/pipeline/stages";
+import DealSection from "@/components/pipeline/DealSection";
 import DealFormModal from "@/components/pipeline/DealFormModal";
 
-const STAGES = [
-  { value: "lead",       label: "Lead",                  color: "bg-blue-100 text-blue-700" },
-  { value: "quoting",    label: "Quoting",               color: "bg-purple-100 text-purple-700" },
-  { value: "quote_sent", label: "Quote Sent to Client",  color: "bg-indigo-100 text-indigo-700" },
-  { value: "follow_up",  label: "Follow Up",             color: "bg-orange-100 text-orange-700" },
-  { value: "won",        label: "Won",                   color: "bg-emerald-100 text-emerald-700" },
-  { value: "lost",       label: "Lost",                  color: "bg-red-100 text-red-500" },
-];
-
-const ACTIVE_STAGES = STAGES.filter(s => s.value !== "lost" && s.value !== "won");
-
-// ── NotesCell (must be outside Pipeline to avoid remount on every render) ──
-function NotesCell({ deal, isEditing, getPending, setPending, keyFn, saveField, setEditingCell, startEdit }) {
-  const val = deal.notes || "";
-  const [localVal, setLocalVal] = React.useState(getPending(deal.id, "notes") !== undefined && isEditing ? getPending(deal.id, "notes") : val);
-
-  if (isEditing) {
-    return (
-      <textarea
-        autoFocus
-        value={localVal}
-        onChange={e => {
-          setLocalVal(e.target.value);
-          setPending(p => ({ ...p, [keyFn(deal.id, "notes")]: e.target.value }));
-        }}
-        onBlur={() => saveField(deal.id, "notes")}
-        onKeyDown={e => { if (e.key === "Escape") setEditingCell(null); }}
-        className="w-full text-sm border border-[#1a2744]/25 rounded p-1.5 resize-none focus:outline-none focus:ring-1 focus:ring-[#1a2744]/20 min-h-[64px]"
-        rows={3}
-      />
-    );
-  }
-  return (
-    <div
-      onClick={() => { setLocalVal(val); startEdit(deal.id, "notes", val); }}
-      className="cursor-text min-h-[26px] text-sm text-gray-600 hover:bg-[#1a2744]/5 rounded px-1.5 py-0.5 -mx-1.5 transition-colors leading-snug"
-      style={{ display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}
-    >
-      {val || <span className="text-gray-300 text-xs italic">Add notes…</span>}
-    </div>
-  );
-}
-
-// Legacy stage values from older data
-const LEGACY_MAP = {
-  lead_received: "lead", contacted: "lead",
-  quote_requested: "quoting", quotes_received: "quoting",
-  quote_sent: "quote_sent", follow_up: "follow_up",
-  policy_bound: "won", lost: "lost",
+const ACTIVE_THEME = {
+  border: "border-gray-200",
+  headerBorder: "border-gray-200",
+  headerBg: "bg-gray-50/80",
+  headerText: "text-gray-400",
+  colBorder: "border-gray-100",
+  divide: "divide-gray-100",
+  rowSelected: "bg-blue-50",
+  rowEditing: "bg-blue-50/30",
+  rowHover: "hover:bg-gray-50/70",
 };
 
-const normalizeStage = (s) => LEGACY_MAP[s] || s || "lead";
-const getStageConf = (s) => STAGES.find(x => x.value === s) || STAGES[0];
-
-const UI_TO_DB_STAGE = {
-  lead:       "lead_received",
-  quoting:    "quote_requested",
-  quote_sent: "quote_sent",
-  follow_up:  "follow_up",
-  won:        "policy_bound",
-  lost:       "lost",
+const WON_THEME = {
+  border: "border-emerald-100",
+  headerBorder: "border-emerald-100",
+  headerBg: "bg-emerald-50/50",
+  headerText: "text-emerald-600",
+  colBorder: "border-emerald-100",
+  divide: "divide-emerald-50",
+  titleText: "text-emerald-700",
+  badgeBg: "bg-emerald-50",
+  badgeBorder: "border-emerald-100",
+  rowSelected: "bg-emerald-50",
+  rowEditing: "bg-emerald-50/50",
+  rowHover: "hover:bg-emerald-50/40",
 };
-const toDbStage = (s) => UI_TO_DB_STAGE[s] || s;
 
-const COL_WIDTHS = "grid-cols-[2fr_1.5fr_1.7fr_3fr_1.2fr]";
+const LOST_THEME = {
+  border: "border-red-100",
+  headerBorder: "border-red-100",
+  headerBg: "bg-red-50/50",
+  headerText: "text-red-400",
+  colBorder: "border-red-100",
+  divide: "divide-red-50",
+  titleText: "text-red-600",
+  badgeBg: "bg-red-50",
+  badgeBorder: "border-red-100",
+  rowSelected: "bg-red-50",
+  rowEditing: "bg-red-50/50",
+  rowHover: "hover:bg-red-50/40",
+};
 
 export default function Pipeline() {
   const { user } = useAuth();
   const { isAdmin, isAdminStaff } = useUserRole();
   const [stageFilter, setStageFilter] = useState("all");
-  const [editingCell, setEditingCell] = useState(null);
-  const [pending, setPending]     = useState({});
-  const [selected, setSelected]   = useState(new Set());
-  const [bulkStage, setBulkStage] = useState("");
-  const [editDeal, setEditDeal]   = useState(null);
+  const [selected, setSelected]       = useState(new Set());
+  const [editDeal, setEditDeal]       = useState(null);
   const [showNewDeal, setShowNewDeal] = useState(false);
-  const queryClient               = useQueryClient();
+  const queryClient = useQueryClient();
+
+  const edit = useInlineEdit(async (id, field, val) => {
+    await base44.entities.Deal.update(id, { [field]: val });
+    queryClient.invalidateQueries({ queryKey: ["deals"] });
+  });
 
   const { data: rawDeals = [], isLoading } = useQuery({
     queryKey: ["deals", user?.email],
@@ -114,54 +94,20 @@ export default function Pipeline() {
     return m;
   }, [clients]);
 
-  const deals = useMemo(() =>
-    rawDeals.map(d => ({ ...d, _stage: normalizeStage(d.stage) })),
+  const deals = useMemo(
+    () => rawDeals.map(d => ({ ...d, _stage: normalizeStage(d.stage) })),
     [rawDeals]
   );
 
-  const activeDeals = deals.filter(d => d._stage !== "lost" && d._stage !== "won");
-  const wonDeals    = deals.filter(d => d._stage === "won");
-  const lostDeals   = deals.filter(d => d._stage === "lost");
-
-  const filteredDeals = stageFilter === "all"
-    ? activeDeals
-    : activeDeals.filter(d => d._stage === stageFilter);
-
-  const totalValue = filteredDeals.reduce((s, d) => s + (d.estimated_premium || 0), 0);
-
-  // ── edit helpers ──────────────────────────────────────────────
-  const key = (id, field) => `${id}.${field}`;
-
-  const startEdit = (id, field, val) => {
-    setEditingCell({ id, field });
-    setPending(p => ({ ...p, [key(id, field)]: val ?? "" }));
-  };
-
-  const getPending = (id, field, fallback) => {
-    const k = key(id, field);
-    return pending[k] !== undefined ? pending[k] : (fallback ?? "");
-  };
-
-  const saveField = async (id, field) => {
-    const k = key(id, field);
-    let val = pending[k];
-    if (val === undefined) { setEditingCell(null); return; }
-    if (field === "estimated_premium") val = parseFloat(val) || 0;
-    await base44.entities.Deal.update(id, { [field]: val });
-    queryClient.invalidateQueries({ queryKey: ["deals"] });
-    setEditingCell(null);
-  };
-
-  const onKeyDown = (e, id, field) => {
-    if (e.key === "Enter" && field !== "notes") saveField(id, field);
-    if (e.key === "Escape") setEditingCell(null);
-  };
+  const activeDeals   = deals.filter(d => d._stage !== "lost" && d._stage !== "won");
+  const wonDeals      = deals.filter(d => d._stage === "won");
+  const lostDeals     = deals.filter(d => d._stage === "lost");
+  const filteredDeals = stageFilter === "all" ? activeDeals : activeDeals.filter(d => d._stage === stageFilter);
+  const totalValue    = filteredDeals.reduce((s, d) => s + (d.estimated_premium || 0), 0);
 
   const handleStageChange = async (id, stage) => {
-    const isWon = stage === "won" || stage === "policy_bound";
     await base44.entities.Deal.update(id, { stage: toDbStage(stage) });
-    // When a deal is won, mark the associated client as active
-    if (isWon) {
+    if (stage === "won" || stage === "policy_bound") {
       const deal = rawDeals.find(d => d.id === id);
       if (deal?.client_id) {
         await base44.entities.Client.update(deal.client_id, { status: "active" });
@@ -172,14 +118,11 @@ export default function Pipeline() {
     queryClient.invalidateQueries({ queryKey: ["deals"] });
   };
 
-  const toggleSelect = (id) => {
-    setSelected(prev => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
-  };
-
+  const toggleSelect   = (id) => setSelected(prev => {
+    const next = new Set(prev);
+    next.has(id) ? next.delete(id) : next.add(id);
+    return next;
+  });
   const clearSelection = () => setSelected(new Set());
 
   const handleBulkDelete = async () => {
@@ -197,86 +140,16 @@ export default function Pipeline() {
 
   const handleAddRow = async () => {
     const uiStage = stageFilter !== "all" ? stageFilter : "lead";
-    await base44.entities.Deal.create({ client_name: "", stage: toDbStage(uiStage), assigned_broker: user?.email, broker_name: user?.full_name });
+    await base44.entities.Deal.create({
+      client_name: "", stage: toDbStage(uiStage),
+      assigned_broker: user?.email, broker_name: user?.full_name,
+    });
     queryClient.invalidateQueries({ queryKey: ["deals"] });
   };
 
-  // ── cell renderers ────────────────────────────────────────────
-  const isEdit = (id, field) => editingCell?.id === id && editingCell?.field === field;
+  const sharedProps = { edit, selected, toggleSelect, handleStageChange, setEditDeal, clientMap };
 
-  const TextCell = ({ deal, field, placeholder }) => {
-    const val = deal[field] || "";
-    return isEdit(deal.id, field) ? (
-      <Input
-        autoFocus
-        value={getPending(deal.id, field, val)}
-        onChange={e => setPending(p => ({ ...p, [key(deal.id, field)]: e.target.value }))}
-        onBlur={() => saveField(deal.id, field)}
-        onKeyDown={e => onKeyDown(e, deal.id, field)}
-        className="h-7 text-sm border-[#1a2744]/25 focus-visible:ring-[#1a2744]/20"
-      />
-    ) : (
-      <div
-        onClick={() => startEdit(deal.id, field, val)}
-        className="cursor-text min-h-[26px] flex items-center text-sm text-gray-800 hover:bg-[#1a2744]/5 rounded px-1.5 py-0.5 -mx-1.5 transition-colors"
-      >
-        {val || <span className="text-gray-300 text-xs italic">{placeholder}</span>}
-      </div>
-    );
-  };
-
-  const ContactCell = ({ deal }) => {
-    const client = clientMap[deal.client_id];
-    const phone = deal.contact_phone || client?.phone || "";
-    const email = deal.contact_email || client?.email || "";
-
-    return (
-      <div className="space-y-0.5">
-        {isEdit(deal.id, "contact_phone") ? (
-          <Input autoFocus value={getPending(deal.id, "contact_phone", phone)}
-            onChange={e => setPending(p => ({ ...p, [key(deal.id, "contact_phone")]: e.target.value }))}
-            onBlur={() => saveField(deal.id, "contact_phone")}
-            onKeyDown={e => onKeyDown(e, deal.id, "contact_phone")}
-            className="h-6 text-xs" placeholder="+27..." />
-        ) : (
-          <div onClick={() => startEdit(deal.id, "contact_phone", phone)}
-            className="cursor-text text-xs text-gray-700 hover:bg-[#1a2744]/5 rounded px-1.5 py-0.5 -mx-1.5 transition-colors">
-            {phone || <span className="text-gray-300 italic">Phone</span>}
-          </div>
-        )}
-        {isEdit(deal.id, "contact_email") ? (
-          <Input autoFocus value={getPending(deal.id, "contact_email", email)}
-            onChange={e => setPending(p => ({ ...p, [key(deal.id, "contact_email")]: e.target.value }))}
-            onBlur={() => saveField(deal.id, "contact_email")}
-            onKeyDown={e => onKeyDown(e, deal.id, "contact_email")}
-            className="h-6 text-xs" placeholder="email@..." />
-        ) : (
-          <div onClick={() => startEdit(deal.id, "contact_email", email)}
-            className="cursor-text text-xs text-gray-400 hover:bg-[#1a2744]/5 rounded px-1.5 py-0.5 -mx-1.5 transition-colors">
-            {email || <span className="text-gray-300 italic">Email</span>}
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  const ValueCell = ({ deal }) => {
-    const val = deal.estimated_premium ?? 0;
-    return isEdit(deal.id, "estimated_premium") ? (
-      <Input autoFocus type="number"
-        value={getPending(deal.id, "estimated_premium", val)}
-        onChange={e => setPending(p => ({ ...p, [key(deal.id, "estimated_premium")]: e.target.value }))}
-        onBlur={() => saveField(deal.id, "estimated_premium")}
-        onKeyDown={e => onKeyDown(e, deal.id, "estimated_premium")}
-        className="h-7 text-sm w-full"
-      />
-    ) : (
-      <div onClick={() => startEdit(deal.id, "estimated_premium", val)}
-        className="cursor-text text-sm font-medium text-gray-800 hover:bg-[#1a2744]/5 rounded px-1.5 py-0.5 -mx-1.5 transition-colors tabular-nums">
-        {val ? `R ${Number(val).toLocaleString()}` : <span className="text-gray-300 font-normal text-xs italic">—</span>}
-      </div>
-    );
-  };
+  const modalProps = { user, clients, isAdmin, brokers, onSuccess: () => queryClient.invalidateQueries({ queryKey: ["deals"] }) };
 
   if (!user) return (
     <div className="flex items-center justify-center h-full">
@@ -292,7 +165,7 @@ export default function Pipeline() {
 
   return (
     <div className="p-4 lg:p-6 space-y-5">
-      {/* ── Header ── */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
           <h2 className="text-xl font-bold text-[#1a2744]">Deals & Leads</h2>
@@ -300,42 +173,38 @@ export default function Pipeline() {
             {filteredDeals.length} deal{filteredDeals.length !== 1 ? "s" : ""} · R {totalValue.toLocaleString()} total
           </p>
         </div>
-        {/* Stage filter + Add Lead */}
         <div className="flex items-center gap-3">
-          <Button
-            onClick={() => setShowNewDeal(true)}
-            className="bg-[#1a2744] hover:bg-[#243556] text-white h-8 px-3 text-sm"
-          >
+          <Button onClick={() => setShowNewDeal(true)} className="bg-[#1a2744] hover:bg-[#243556] text-white h-8 px-3 text-sm">
             <Plus className="w-4 h-4 mr-1" /> Add Lead
           </Button>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-400 hidden sm:block">Filter by stage:</span>
-          <div className="flex flex-wrap gap-1.5">
-            <button
-              onClick={() => setStageFilter("all")}
-              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors border ${
-                stageFilter === "all"
-                  ? "bg-[#1a2744] text-white border-[#1a2744]"
-                  : "bg-white text-gray-500 border-gray-200 hover:border-gray-300"
-              }`}
-            >All</button>
-            {ACTIVE_STAGES.map(s => (
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-400 hidden sm:block">Filter by stage:</span>
+            <div className="flex flex-wrap gap-1.5">
               <button
-                key={s.value}
-                onClick={() => setStageFilter(stageFilter === s.value ? "all" : s.value)}
+                onClick={() => setStageFilter("all")}
                 className={`px-3 py-1 rounded-full text-xs font-medium transition-colors border ${
-                  stageFilter === s.value
-                    ? `${s.color} border-current`
-                    : "bg-white text-gray-400 border-gray-200 hover:border-gray-300 hover:text-gray-600"
+                  stageFilter === "all"
+                    ? "bg-[#1a2744] text-white border-[#1a2744]"
+                    : "bg-white text-gray-500 border-gray-200 hover:border-gray-300"
                 }`}
-              >{s.label}</button>
-            ))}
+              >All</button>
+              {ACTIVE_STAGES.map(s => (
+                <button
+                  key={s.value}
+                  onClick={() => setStageFilter(stageFilter === s.value ? "all" : s.value)}
+                  className={`px-3 py-1 rounded-full text-xs font-medium transition-colors border ${
+                    stageFilter === s.value
+                      ? `${s.color} border-current`
+                      : "bg-white text-gray-400 border-gray-200 hover:border-gray-300 hover:text-gray-600"
+                  }`}
+                >{s.label}</button>
+              ))}
+            </div>
           </div>
-        </div>
         </div>
       </div>
 
-      {/* ── Bulk Action Bar ── */}
+      {/* Bulk Action Bar */}
       {selected.size > 0 && (
         <div className="flex items-center gap-3 bg-[#1a2744] text-white px-4 py-2.5 rounded-xl">
           <span className="text-sm font-medium">{selected.size} selected</span>
@@ -358,289 +227,47 @@ export default function Pipeline() {
         </div>
       )}
 
-      {/* ── Table ── */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <DealSection
+        deals={filteredDeals}
+        theme={ACTIVE_THEME}
+        showAddRow
+        onAddRow={handleAddRow}
+        isLoading={isLoading}
+        {...sharedProps}
+      />
 
-        {/* Column headers */}
-        <div className={`grid ${COL_WIDTHS} border-b border-gray-200 bg-gray-50/80`}>
-          {["Name", "Contact Details", "Stage", "Notes", "Est. Value (R)"].map((col, i) => (
-            <div key={i} className={`px-4 py-2.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wider ${i > 0 ? "border-l border-gray-100" : "pl-10"}`}>
-              {col}
-            </div>
-          ))}
-        </div>
-
-        {/* Add row — top */}
-        <button
-          onClick={handleAddRow}
-          className="w-full flex items-center gap-2 px-4 py-2.5 border-b border-gray-100 hover:bg-gray-50 transition-colors text-gray-400 hover:text-[#1a2744] text-sm"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add Lead</span>
-        </button>
-
-        {/* Rows */}
-        <div className="divide-y divide-gray-100">
-          {isLoading && (
-            <div className="py-16 flex justify-center">
-              <RefreshCw className="w-5 h-5 animate-spin text-gray-300" />
-            </div>
-          )}
-
-          {!isLoading && filteredDeals.length === 0 && (
-            <div className="py-16 text-center text-gray-400 text-sm">
-              No deals found. Click <span className="font-medium text-gray-600">+ Add Lead</span> below to get started.
-            </div>
-          )}
-
-          {filteredDeals.map(deal => {
-            const stageConf = getStageConf(deal._stage);
-            const isActive = editingCell?.id === deal.id;
-            const isSelected = selected.has(deal.id);
-
-            return (
-              <div
-                key={deal.id}
-                className={`grid ${COL_WIDTHS} transition-colors duration-100 ${
-                  isSelected ? "bg-blue-50" : isActive ? "bg-blue-50/30" : "hover:bg-gray-50/70"
-                }`}
-              >
-                {/* Name */}
-                <div className="px-4 py-3 flex items-start gap-2">
-                  <input
-                    type="checkbox"
-                    checked={isSelected}
-                    onChange={() => toggleSelect(deal.id)}
-                    onClick={e => e.stopPropagation()}
-                    className="mt-1 flex-shrink-0 accent-[#1a2744] cursor-pointer"
-                  />
-                  <div className="w-full">
-                    <TextCell deal={deal} field="client_name" placeholder="Client name…" />
-                    <div
-                      onClick={() => setEditDeal(deal)}
-                      className="cursor-pointer text-[10px] text-gray-300 hover:text-[#1a2744] hover:underline mt-0.5 transition-colors"
-                    >
-                      Open details
-                    </div>
-                  </div>
-                </div>
-
-                {/* Contact Details */}
-                <div className="px-4 py-3 border-l border-gray-100">
-                  <ContactCell deal={deal} />
-                </div>
-
-                {/* Stage — always visible as colored badge dropdown */}
-                <div className="px-4 py-3 border-l border-gray-100 flex items-start pt-3.5">
-                  <Select value={deal._stage} onValueChange={v => handleStageChange(deal.id, v)}>
-                    <SelectTrigger className="h-auto p-0 border-0 shadow-none focus:ring-0 bg-transparent w-auto [&>svg]:hidden">
-                      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium cursor-pointer select-none ${stageConf.color}`}>
-                        {stageConf.label}
-                        <ChevronDown className="w-3 h-3 opacity-40" />
-                      </span>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {STAGES.map(s => (
-                        <SelectItem key={s.value} value={s.value}>
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${s.color}`}>
-                            {s.label}
-                          </span>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Notes */}
-                <div className="px-4 py-3 border-l border-gray-100">
-                  <NotesCell
-                    deal={deal}
-                    isEditing={editingCell?.id === deal.id && editingCell?.field === "notes"}
-                    getPending={getPending}
-                    setPending={setPending}
-                    keyFn={key}
-                    saveField={saveField}
-                    setEditingCell={setEditingCell}
-                    startEdit={startEdit}
-                  />
-                </div>
-
-                {/* Estimated Value */}
-                <div className="px-4 py-3 border-l border-gray-100">
-                  <ValueCell deal={deal} />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-
-      </div>
-
-      {/* ── Won Deals Table ── */}
       {wonDeals.length > 0 && (
-        <div>
-          <div className="flex items-center gap-2 mb-3">
-            <h3 className="text-sm font-semibold text-emerald-700">Won Deals</h3>
-            <span className="text-xs text-gray-400 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full">
-              {wonDeals.length} · R {wonDeals.reduce((s, d) => s + (d.estimated_premium || 0), 0).toLocaleString()} bound
-            </span>
-          </div>
-          <div className="bg-white rounded-xl shadow-sm border border-emerald-100 overflow-hidden opacity-80">
-            <div className={`grid ${COL_WIDTHS} border-b border-emerald-100 bg-emerald-50/50`}>
-              {["Name", "Contact Details", "Stage", "Notes", "Est. Value (R)"].map((col, i) => (
-                <div key={i} className={`px-4 py-2.5 text-[11px] font-semibold text-emerald-600 uppercase tracking-wider ${i > 0 ? "border-l border-emerald-100" : "pl-10"}`}>
-                  {col}
-                </div>
-              ))}
-            </div>
-            <div className="divide-y divide-emerald-50">
-              {wonDeals.map(deal => {
-                const stageConf = getStageConf(deal._stage);
-                const isActive = editingCell?.id === deal.id;
-                const isSelected = selected.has(deal.id);
-                return (
-                  <div key={deal.id} className={`grid ${COL_WIDTHS} transition-colors duration-100 ${isSelected ? "bg-emerald-50" : isActive ? "bg-emerald-50/50" : "hover:bg-emerald-50/40"}`}>
-                    <div className="px-4 py-3 flex items-start gap-2">
-                      <input type="checkbox" checked={isSelected} onChange={() => toggleSelect(deal.id)} onClick={e => e.stopPropagation()} className="mt-1 flex-shrink-0 accent-[#1a2744] cursor-pointer" />
-                      <div className="w-full">
-                         <TextCell deal={deal} field="client_name" placeholder="Client name…" />
-                         <div onClick={() => setEditDeal(deal)} className="cursor-pointer text-[10px] text-gray-300 hover:text-[#1a2744] hover:underline mt-0.5 transition-colors">Open details</div>
-                       </div>
-                      </div>
-                      <div className="px-4 py-3 border-l border-emerald-50"><ContactCell deal={deal} /></div>
-                    <div className="px-4 py-3 border-l border-emerald-50 flex items-start pt-3.5">
-                      <Select value={deal._stage} onValueChange={v => handleStageChange(deal.id, v)}>
-                        <SelectTrigger className="h-auto p-0 border-0 shadow-none focus:ring-0 bg-transparent w-auto [&>svg]:hidden">
-                          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium cursor-pointer select-none ${stageConf.color}`}>
-                            {stageConf.label}<ChevronDown className="w-3 h-3 opacity-40" />
-                          </span>
-                        </SelectTrigger>
-                        <SelectContent>
-                          {STAGES.map(s => <SelectItem key={s.value} value={s.value}><span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${s.color}`}>{s.label}</span></SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="px-4 py-3 border-l border-emerald-50">
-                      <NotesCell deal={deal} isEditing={editingCell?.id === deal.id && editingCell?.field === "notes"} getPending={getPending} setPending={setPending} keyFn={key} saveField={saveField} setEditingCell={setEditingCell} startEdit={startEdit} />
-                    </div>
-                    <div className="px-4 py-3 border-l border-emerald-50"><ValueCell deal={deal} /></div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
+        <DealSection
+          deals={wonDeals}
+          theme={WON_THEME}
+          title="Won Deals"
+          subtitle={`${wonDeals.length} · R ${wonDeals.reduce((s, d) => s + (d.estimated_premium || 0), 0).toLocaleString()} bound`}
+          {...sharedProps}
+        />
+      )}
+
+      {lostDeals.length > 0 && (
+        <DealSection
+          deals={lostDeals}
+          theme={LOST_THEME}
+          title="Lost Leads"
+          subtitle={`${lostDeals.length} · Follow up to re-engage`}
+          {...sharedProps}
+        />
       )}
 
       <DealFormModal
         open={!!editDeal}
         onClose={() => setEditDeal(null)}
-        onSuccess={() => queryClient.invalidateQueries({ queryKey: ["deals"] })}
-        user={user}
         deal={editDeal}
-        clients={clients}
-        isAdmin={isAdmin}
-        brokers={brokers}
+        {...modalProps}
       />
       <DealFormModal
         open={showNewDeal}
         onClose={() => setShowNewDeal(false)}
-        onSuccess={() => queryClient.invalidateQueries({ queryKey: ["deals"] })}
-        user={user}
         deal={null}
-        clients={clients}
-        isAdmin={isAdmin}
-        brokers={brokers}
+        {...modalProps}
       />
-
-      {/* ── Lost Deals Table ── */}
-      {lostDeals.length > 0 && (
-        <div>
-          <div className="flex items-center gap-2 mb-3">
-            <h3 className="text-sm font-semibold text-red-600">Lost Leads</h3>
-            <span className="text-xs text-gray-400 bg-red-50 border border-red-100 px-2 py-0.5 rounded-full">
-              {lostDeals.length} · Follow up to re-engage
-            </span>
-          </div>
-          <div className="bg-white rounded-xl shadow-sm border border-red-100 overflow-hidden opacity-80">
-            <div className={`grid ${COL_WIDTHS} border-b border-red-100 bg-red-50/50`}>
-              {["Name", "Contact Details", "Stage", "Notes", "Est. Value (R)"].map((col, i) => (
-                <div key={i} className={`px-4 py-2.5 text-[11px] font-semibold text-red-400 uppercase tracking-wider ${i > 0 ? "border-l border-red-100" : "pl-10"}`}>
-                  {col}
-                </div>
-              ))}
-            </div>
-            <div className="divide-y divide-red-50">
-              {lostDeals.map(deal => {
-                const stageConf = getStageConf(deal._stage);
-                const isActive = editingCell?.id === deal.id;
-                const isSelected = selected.has(deal.id);
-
-                return (
-                  <div
-                    key={deal.id}
-                    className={`grid ${COL_WIDTHS} transition-colors duration-100 ${
-                      isSelected ? "bg-red-50" : isActive ? "bg-red-50/50" : "hover:bg-red-50/40"
-                    }`}
-                  >
-                    <div className="px-4 py-3 flex items-start gap-2">
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={() => toggleSelect(deal.id)}
-                        onClick={e => e.stopPropagation()}
-                        className="mt-1 flex-shrink-0 accent-[#1a2744] cursor-pointer"
-                      />
-                      <div className="w-full">
-                         <TextCell deal={deal} field="client_name" placeholder="Client name…" />
-                         <div onClick={() => setEditDeal(deal)} className="cursor-pointer text-[10px] text-gray-300 hover:text-[#1a2744] hover:underline mt-0.5 transition-colors">Open details</div>
-                       </div>
-                      </div>
-                      <div className="px-4 py-3 border-l border-red-50">
-                      <ContactCell deal={deal} />
-                    </div>
-                    <div className="px-4 py-3 border-l border-red-50 flex items-start pt-3.5">
-                      <Select value={deal._stage} onValueChange={v => handleStageChange(deal.id, v)}>
-                        <SelectTrigger className="h-auto p-0 border-0 shadow-none focus:ring-0 bg-transparent w-auto [&>svg]:hidden">
-                          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium cursor-pointer select-none ${stageConf.color}`}>
-                            {stageConf.label}
-                            <ChevronDown className="w-3 h-3 opacity-40" />
-                          </span>
-                        </SelectTrigger>
-                        <SelectContent>
-                          {STAGES.map(s => (
-                            <SelectItem key={s.value} value={s.value}>
-                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${s.color}`}>
-                                {s.label}
-                              </span>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="px-4 py-3 border-l border-red-50">
-                      <NotesCell
-                        deal={deal}
-                        isEditing={editingCell?.id === deal.id && editingCell?.field === "notes"}
-                        getPending={getPending}
-                        setPending={setPending}
-                        keyFn={key}
-                        saveField={saveField}
-                        setEditingCell={setEditingCell}
-                        startEdit={startEdit}
-                      />
-                    </div>
-                    <div className="px-4 py-3 border-l border-red-50">
-                      <ValueCell deal={deal} />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
