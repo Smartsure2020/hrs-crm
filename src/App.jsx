@@ -9,6 +9,7 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import Login from '@/pages/Login';
 import AuthCallback from '@/pages/AuthCallback';
 import SetPassword from '@/pages/SetPassword';
+import { useEffect } from 'react';
 
 
 const { Pages, Layout, mainPage } = pagesConfig;
@@ -22,6 +23,10 @@ const LayoutWrapper = ({ children, currentPageName }) => Layout ?
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isAuthenticated, navigateToLogin } = useAuth();
 
+  useEffect(() => {
+    if (!isLoadingAuth && !isAuthenticated) navigateToLogin();
+  }, [isLoadingAuth, isAuthenticated, navigateToLogin]);
+
   if (isLoadingAuth) {
     return (
       <div className="fixed inset-0 flex items-center justify-center">
@@ -30,10 +35,7 @@ const AuthenticatedApp = () => {
     );
   }
 
-  if (!isAuthenticated) {
-    navigateToLogin();
-    return null;
-  }
+  if (!isAuthenticated) return null;
 
   return (
     <Routes>
