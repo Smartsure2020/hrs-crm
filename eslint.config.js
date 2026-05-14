@@ -55,6 +55,23 @@ export default [
         { ignore: ["cmdk-input-wrapper", "toast-close"] },
       ],
       "react-hooks/rules-of-hooks": "error",
+      // Prevent components/pages from reaching around the API to Supabase directly.
+      // Data queries belong in /api routes (service_role). Auth session reads belong
+      // in src/lib/. Add an override below for auth-flow pages that legitimately
+      // need the Supabase client for OAuth callbacks and password flows.
+      "no-restricted-imports": ["error", {
+        patterns: [{
+          group: ["**/supabaseClient", "@/lib/supabaseClient"],
+          message: "Direct Supabase access is not allowed in components or pages. Route data queries through the API layer (/api/*). Supabase is only allowed in src/lib/ and auth-flow pages.",
+        }],
+      }],
+    },
+  },
+  // Auth-flow pages that legitimately use the Supabase client (OAuth callback, password set).
+  {
+    files: ["src/pages/AuthCallback.jsx", "src/pages/SetPassword.jsx"],
+    rules: {
+      "no-restricted-imports": "off",
     },
   },
 ];
