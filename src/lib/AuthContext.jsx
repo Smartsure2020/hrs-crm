@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
+import { perms } from '@/lib/permissions';
 
 const AuthContext = createContext();
 
@@ -110,15 +111,11 @@ export function useAuth() {
 
 export function useUserRole() {
   const { user } = useAuth();
-  const isAdmin      = user?.role === 'admin';
-  const isAdminStaff = user?.role === 'admin_staff';
-  const isManager    = user?.role === 'manager';
   return {
-    isAdmin,
-    isAdminStaff,
-    isManager,
-    isBroker:        !isAdmin && !isAdminStaff && !isManager,
-    canSeeAll:       isAdmin || isAdminStaff,
-    canImportExport: isAdmin || isManager,
+    isAdmin:         perms.isAdmin(user),
+    isAdminStaff:    perms.isAdminStaff(user),
+    isBroker:        perms.isBroker(user),
+    canSeeAll:       perms.canSeeAll(user),
+    canImportExport: perms.canImportExport(user),
   };
 }

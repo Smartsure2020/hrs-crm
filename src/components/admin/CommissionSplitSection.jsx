@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { ROLES } from "@/lib/permissions";
 import { base44 } from "@/api/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -46,7 +47,7 @@ export default function CommissionSplitSection() {
     setEditData({ broker_percentage: split.broker_percentage, hrs_percentage: split.hrs_percentage, notes: split.notes || "" });
   };
 
-  const brokerOptions = brokers.filter(u => u.role === "broker" || u.role === "admin");
+  const brokerOptions = brokers.filter(u => u.role === ROLES.BROKER || u.role === ROLES.ADMIN);
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-5">

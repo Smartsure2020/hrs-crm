@@ -1,4 +1,5 @@
 import { requireAuth }   from './_auth.js';
+import { isAdminRole }   from './_permissions.js';
 import { getRateLimiter } from './_ratelimit.js';
 import { createActions }  from './_base.js';
 
@@ -55,7 +56,7 @@ export default async function handler(req, res) {
   if (!act) return res.status(400).json({ error: `Unknown action: ${action}` });
 
   const ctx = {
-    isAdmin:     ['admin', 'admin_staff'].includes(user._profile?.role),
+    isAdmin:     isAdminRole(user._profile?.role),
     callerEmail: user.email,
   };
 

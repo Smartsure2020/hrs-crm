@@ -1,11 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
+import { ADMIN_ROLES } from './_permissions.js';
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
-
-const ADMIN_ROLES = ['admin', 'admin_staff'];
 
 export async function requireAuth(req, res) {
   const token = req.headers['authorization']?.replace('Bearer ', '');

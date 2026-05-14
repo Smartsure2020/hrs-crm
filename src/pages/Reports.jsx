@@ -30,21 +30,19 @@ const REPORTS = [
 
 export default function Reports() {
   const { user } = useAuth();
-  const { isAdmin, isManager } = useUserRole();
+  const { canSeeAll } = useUserRole();
   const [activeReport, setActiveReport] = useState(null);
-
-  const isPrivileged = isAdmin || isManager;
 
   if (!user) {
     return <div className="flex items-center justify-center h-full"><RefreshCw className="w-5 h-5 animate-spin text-gray-400" /></div>;
   }
 
-  if (!isPrivileged) {
+  if (!canSeeAll) {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-3">
         <ShieldAlert className="w-10 h-10 text-red-400" />
         <p className="text-gray-500 font-medium">Access Denied</p>
-        <p className="text-sm text-gray-400">Reports are only available to Admin and Manager roles.</p>
+        <p className="text-sm text-gray-400">Reports are only available to Admin and Admin Staff roles.</p>
       </div>
     );
   }
