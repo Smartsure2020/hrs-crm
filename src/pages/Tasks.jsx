@@ -77,11 +77,14 @@ export default function Tasks() {
       status: task.status === "completed" ? "pending" : "completed"
     }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["tasks"] }),
-    onError: (err) => toast({
-      title: "Failed to update task",
-      description: err?.message || "Please try again.",
-      variant: "destructive",
-    }),
+    onError: (err) => {
+      if (err?.code === 'AUTH_EXPIRED') return;
+      toast({
+        title: "Failed to update task",
+        description: err?.message || "Please try again.",
+        variant: "destructive",
+      });
+    },
   });
 
   // Tab filtering is client-side within the current page.

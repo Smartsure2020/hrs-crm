@@ -6,6 +6,8 @@ import { supabase } from '@/lib/supabaseClient';
 
 export const PAGE_SIZE = 50;
 
+let redirecting = false;
+
 async function apiCall(path, options = {}) {
   const { data: { session } } = await supabase.auth.getSession();
   const headers = { ...(options.headers || {}) };
@@ -13,6 +15,23 @@ async function apiCall(path, options = {}) {
     headers['Authorization'] = `Bearer ${session.access_token}`;
   }
   const res = await fetch(path, { ...options, headers });
+
+  // Session expired or revoked — bounce to login (once, even with parallel requests)
+  if (res.status === 401) {
+    if (!redirecting) {
+      redirecting = true;
+      const next = window.location.pathname + window.location.search;
+      // Best-effort sign-out so the stale session doesn't linger
+      supabase.auth.signOut().finally(() => {
+        window.location.href = `/login?next=${encodeURIComponent(next)}`;
+      });
+    }
+    // Throw a tagged error so React Query's onError can quietly ignore it
+    const err = new Error('Session expired');
+    err.code = 'AUTH_EXPIRED';
+    throw err;
+  }
+
   const text = await res.text();
   let data;
   try {
