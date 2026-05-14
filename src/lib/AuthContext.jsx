@@ -62,7 +62,11 @@ export function AuthProvider({ children }) {
   async function updateMe(data) {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) return;
-    const { id: _id, created_at: _ca, updated_at: _ua, ...payload } = data;
+    const payload = {};
+    if (data.full_name  !== undefined) payload.full_name  = data.full_name;
+    if (data.phone      !== undefined) payload.phone      = data.phone;
+    if (data.avatar_url !== undefined) payload.avatar_url = data.avatar_url;
+    if (Object.keys(payload).length === 0) return;
     const { data: updated } = await supabase
       .from('profiles')
       .update(payload)

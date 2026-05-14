@@ -8,7 +8,9 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertTriangle } from "lucide-react";
+import { supabase } from "@/lib/supabaseClient";
+import { toast } from "@/components/ui/use-toast";
 
 const PROVINCES = [
   "Eastern Cape","Free State","Gauteng","KwaZulu-Natal",
@@ -52,12 +54,14 @@ const defaultForm = (user, defaultStatus = "prospect") => ({
 export default function ClientFormModal({ open, onClose, onSuccess, user, client, defaultStatus }) {
   const [loading, setLoading] = useState(false);
   const [brokers, setBrokers] = useState([]);
+  const [duplicates, setDuplicates] = useState(null); // { list, submitForm } | null
   const [form, setForm] = useState(defaultForm(user, defaultStatus));
 
   const isPersonal = form.client_type === "personal";
 
   useEffect(() => {
     if (!open) return;
+    setDuplicates(null);
     if (client) {
       setForm({ ...defaultForm(user, defaultStatus), ...client });
     } else {
@@ -86,30 +90,63 @@ export default function ClientFormModal({ open, onClose, onSuccess, user, client
     setForm(f => ({ ...f, assigned_broker: email, broker_name: broker?.full_name || email }));
   };
 
+  const performSave = async (submitForm) => {
+    setLoading(true);
+    try {
+      if (client) {
+        await base44.entities.Client.update(client.id, submitForm);
+      } else {
+        await base44.entities.Client.create(submitForm);
+      }
+      await base44.entities.ActivityLog.create({
+        action: `${client ? "Updated" : "Created"} client: ${submitForm.client_name}`,
+        entity_type: "client", entity_name: submitForm.client_name,
+        user_email: user?.email, user_name: user?.full_name
+      });
+      setDuplicates(null);
+      onSuccess?.();
+      onClose();
+    } catch (err) {
+      toast({ title: "Failed to save client", description: err?.message || "Please try again.", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async () => {
-    // Auto-build client_name if empty
     let submitForm = { ...form };
     if (!submitForm.client_name) {
-      if (isPersonal) {
-        submitForm.client_name = [submitForm.initials, submitForm.surname].filter(Boolean).join(" ") || "Unnamed";
-      } else {
-        submitForm.client_name = submitForm.company_name || "Unnamed";
+      submitForm.client_name = isPersonal
+        ? ([submitForm.initials, submitForm.surname].filter(Boolean).join(" ") || "Unnamed")
+        : (submitForm.company_name || "Unnamed");
+    }
+
+    if (!client) {
+      const queries = [];
+      if (submitForm.id_number?.trim())
+        queries.push(supabase.from('clients').select('id,client_name,id_number,email,company_reg').eq('id_number', submitForm.id_number.trim()));
+      if (submitForm.email?.trim())
+        queries.push(supabase.from('clients').select('id,client_name,id_number,email,company_reg').ilike('email', submitForm.email.trim()));
+      if (submitForm.company_reg?.trim())
+        queries.push(supabase.from('clients').select('id,client_name,id_number,email,company_reg').eq('company_reg', submitForm.company_reg.trim()));
+
+      if (queries.length > 0) {
+        const results = await Promise.all(queries);
+        const seen = new Set();
+        const found = [];
+        for (const { data } of results) {
+          for (const row of (data || [])) {
+            if (!seen.has(row.id)) { seen.add(row.id); found.push(row); }
+          }
+        }
+        if (found.length) {
+          setDuplicates({ list: found, submitForm });
+          return;
+        }
       }
     }
-    setLoading(true);
-    if (client) {
-      await base44.entities.Client.update(client.id, submitForm);
-    } else {
-      await base44.entities.Client.create(submitForm);
-    }
-    await base44.entities.ActivityLog.create({
-      action: `${client ? "Updated" : "Created"} client: ${submitForm.client_name}`,
-      entity_type: "client", entity_name: submitForm.client_name,
-      user_email: user?.email, user_name: user?.full_name
-    });
-    setLoading(false);
-    onSuccess?.();
-    onClose();
+
+    await performSave(submitForm);
   };
 
   const canSubmit = isPersonal
@@ -289,9 +326,35 @@ export default function ClientFormModal({ open, onClose, onSuccess, user, client
           </div>
         </div>
 
+        {duplicates && (
+          <div className="rounded-md border border-amber-300 bg-amber-50 p-3 space-y-2 text-sm mx-1">
+            <div className="flex items-center gap-2 font-semibold text-amber-800">
+              <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+              Possible duplicate{duplicates.list.length > 1 ? 's' : ''} found
+            </div>
+            <ul className="space-y-0.5 text-amber-700">
+              {duplicates.list.map(d => (
+                <li key={d.id}>
+                  {d.client_name}
+                  {d.id_number ? <span className="text-amber-500"> · ID: {d.id_number}</span> : null}
+                  {d.email ? <span className="text-amber-500"> · {d.email}</span> : null}
+                  {d.company_reg ? <span className="text-amber-500"> · Reg: {d.company_reg}</span> : null}
+                </li>
+              ))}
+            </ul>
+            <div className="flex gap-2 pt-1">
+              <Button variant="outline" size="sm" onClick={() => setDuplicates(null)}>Go Back</Button>
+              <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white"
+                onClick={() => performSave(duplicates.submitForm)} disabled={loading}>
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Create Anyway"}
+              </Button>
+            </div>
+          </div>
+        )}
+
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={handleSubmit} disabled={loading || !canSubmit} className="bg-[#1a2744] hover:bg-[#243556]">
+          <Button onClick={handleSubmit} disabled={loading || !canSubmit || !!duplicates} className="bg-[#1a2744] hover:bg-[#243556]">
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : client ? "Save Changes" : "Create Client"}
           </Button>
         </DialogFooter>

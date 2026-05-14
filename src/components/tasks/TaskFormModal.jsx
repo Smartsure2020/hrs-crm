@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Trash2 } from "lucide-react";
+import { toast } from "@/components/ui/use-toast";
 
 const TASK_TYPES = [
   { value: "follow_up_quote", label: "Follow Up on Quote" },
@@ -53,23 +54,33 @@ export default function TaskFormModal({ open, onClose, onSuccess, user, task, cl
   const handleSubmit = async () => {
     if (!form.title || !form.due_date) return;
     setLoading(true);
-    if (task) {
-      await base44.entities.Task.update(task.id, form);
-    } else {
-      await base44.entities.Task.create(form);
+    try {
+      if (task) {
+        await base44.entities.Task.update(task.id, form);
+      } else {
+        await base44.entities.Task.create(form);
+      }
+      onSuccess?.();
+      onClose();
+    } catch (err) {
+      toast({ title: "Failed to save task", description: err?.message || "Please try again.", variant: "destructive" });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
-    onSuccess?.();
-    onClose();
   };
 
   const handleDelete = async () => {
     if (!task) return;
     setLoading(true);
-    await base44.entities.Task.delete(task.id);
-    setLoading(false);
-    onSuccess?.();
-    onClose();
+    try {
+      await base44.entities.Task.delete(task.id);
+      onSuccess?.();
+      onClose();
+    } catch (err) {
+      toast({ title: "Failed to delete task", description: err?.message || "Please try again.", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

@@ -1,9 +1,14 @@
+import { requireAuth } from './_auth.js';
+
 // Email sending handler via Resend
 // Dev: logs the payload and returns success when RESEND_API_KEY_C is absent
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
+
+  const user = await requireAuth(req, res);
+  if (!user) return;
 
   const { to, subject, html, body } = req.body || {};
   if (!to || !subject) {

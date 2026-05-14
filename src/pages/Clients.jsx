@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/client";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { base44, PAGE_SIZE } from "@/api/client";
+import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ import {
 import { Plus, Search, Users, Phone, Mail, Pencil, RefreshCw, Download, Upload, FileDown } from "lucide-react";
 import ClientFormModal from "@/components/clients/ClientFormModal";
 import CSVImportModal from "@/components/shared/CSVImportModal";
+import { Pagination } from "@/components/shared/Pagination";
 import { downloadCSV, downloadTemplate } from "@/lib/csvUtils";
 import { logAudit } from "@/lib/auditLogger";
 
@@ -32,9 +33,11 @@ export default function Clients() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("active");
   const [brokerFilter, setBrokerFilter] = useState("all");
+  const [page, setPage] = useState(0);
   const [showForm, setShowForm] = useState(false);
   const [editClient, setEditClient] = useState(null);
   const [showImport, setShowImport] = useState(false);
@@ -43,6 +46,15 @@ export default function Clients() {
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
   }, []);
+
+  // Debounce search input — fires query 300 ms after typing stops
+  useEffect(() => {
+    const t = setTimeout(() => { setDebouncedSearch(search); setPage(0); }, 300);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  // Reset to page 1 when any dropdown filter changes
+  useEffect(() => { setPage(0); }, [statusFilter, typeFilter, brokerFilter]);
 
   const isAdmin = user?.role === "admin";
   const isAdminStaff = user?.role === "admin_staff";
@@ -53,8 +65,8 @@ export default function Clients() {
   const CLIENT_HEADERS = ["ID", "Type", "Status", "Client Name", "First Name", "Surname", "Initials", "ID Number", "Company Name", "Company Reg", "Email", "Phone", "Street Address", "Suburb", "City", "Province", "Postal Code", "Current Insurer", "Current Policy No", "Broker", "Notes"];
 
   const handleExport = () => {
-    downloadCSV(filtered, CLIENT_COLUMNS, CLIENT_HEADERS, "clients");
-    logAudit(user, "export_data", { record_type: "Client", record_name: "Clients List", details: `Exported ${filtered.length} records` });
+    downloadCSV(clients, CLIENT_COLUMNS, CLIENT_HEADERS, "clients");
+    logAudit(user, "export_data", { record_type: "Client", record_name: "Clients List", details: `Exported ${clients.length} records (page ${page + 1} of ${Math.ceil(total / PAGE_SIZE)})` });
   };
 
   const handleImport = async (validRows) => {
@@ -84,29 +96,27 @@ export default function Clients() {
     return { success, skipped };
   };
 
-  const { data: clients = [], isLoading } = useQuery({
-    queryKey: ["clients", user?.email],
-    queryFn: () => canSeeAll
-      ? base44.entities.Client.filter({ status: "active" }, "-created_at", 500)
-      : base44.entities.Client.filter({ assigned_broker: user?.email, status: "active" }, "-created_at", 500),
+  const { data: pageResult, isLoading } = useQuery({
+    queryKey: ["clients", user?.email, page, statusFilter, typeFilter, brokerFilter, debouncedSearch],
+    queryFn: () => {
+      const filters = {};
+      if (!canSeeAll) filters.assigned_broker = user.email;
+      else if (brokerFilter !== 'all') filters.assigned_broker = brokerFilter;
+      if (statusFilter !== 'all') filters.status = statusFilter;
+      if (typeFilter !== 'all') filters.client_type = typeFilter;
+      return base44.entities.Client.paginate(page, filters, '-created_at', debouncedSearch || null);
+    },
     enabled: !!user,
+    placeholderData: keepPreviousData,
   });
+
+  const clients = pageResult?.data ?? [];
+  const total   = pageResult?.total ?? 0;
 
   const { data: brokers = [] } = useQuery({
     queryKey: ["brokers"],
     queryFn: () => base44.entities.User.list(),
     enabled: !!user && canSeeAll,
-  });
-
-  const filtered = clients.filter(c => {
-    const matchSearch = !search ||
-      c.client_name?.toLowerCase().includes(search.toLowerCase()) ||
-      c.company_name?.toLowerCase().includes(search.toLowerCase()) ||
-      c.email?.toLowerCase().includes(search.toLowerCase());
-    const matchType = typeFilter === "all" || c.client_type === typeFilter;
-    const matchStatus = statusFilter === "all" || c.status === statusFilter;
-    const matchBroker = brokerFilter === "all" || c.assigned_broker === brokerFilter;
-    return matchSearch && matchType && matchStatus && matchBroker;
   });
 
   if (!user) {
@@ -118,7 +128,7 @@ export default function Clients() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
           <h2 className="text-xl font-bold text-[#1a2744]">Clients</h2>
-          <p className="text-sm text-gray-400">{filtered.length} client{filtered.length !== 1 ? "s" : ""}</p>
+          <p className="text-sm text-gray-400">{total.toLocaleString()} client{total !== 1 ? "s" : ""}</p>
         </div>
         <div className="flex items-center gap-2">
           {canImportExport && (
@@ -203,7 +213,7 @@ export default function Clients() {
                     </TableCell>
                   </TableRow>
                 ))
-              ) : filtered.length === 0 ? (
+              ) : clients.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-12 text-gray-400">
                     <Users className="w-8 h-8 mx-auto mb-2 opacity-30" />
@@ -211,7 +221,7 @@ export default function Clients() {
                   </TableCell>
                 </TableRow>
               ) : (
-                filtered.map(client => (
+                clients.map(client => (
                   <TableRow
                     key={client.id}
                     className="cursor-pointer hover:bg-blue-50/40 transition-colors group"
@@ -260,12 +270,13 @@ export default function Clients() {
             </TableBody>
           </Table>
         </div>
+        <Pagination page={page} total={total} pageSize={PAGE_SIZE} onPageChange={setPage} isLoading={isLoading} />
       </Card>
 
       <ClientFormModal
         open={showForm}
         onClose={() => { setShowForm(false); setEditClient(null); }}
-        onSuccess={() => queryClient.invalidateQueries({ queryKey: ["clients", user?.email] })}
+        onSuccess={() => queryClient.invalidateQueries({ queryKey: ["clients"] })}
         user={user}
         client={editClient}
         defaultStatus="active"

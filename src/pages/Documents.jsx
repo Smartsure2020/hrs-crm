@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/client";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { base44, PAGE_SIZE } from "@/api/client";
+import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +17,8 @@ import {
   Upload, Search, FileText, Download, Loader2, RefreshCw, Trash2, Plus
 } from "lucide-react";
 import moment from "moment";
+import { Pagination } from "@/components/shared/Pagination";
+import { toast } from "@/components/ui/use-toast";
 
 const DOC_TYPES = ["policy_schedule","quote","claim","compliance","id_copy","proof_of_address","bank_statement","other"];
 const DOC_TYPE_COLORS = {
@@ -33,7 +35,9 @@ const DOC_TYPE_COLORS = {
 export default function Documents() {
   const [user, setUser] = useState(null);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
+  const [page, setPage] = useState(0);
   const [showUpload, setShowUpload] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadForm, setUploadForm] = useState({
@@ -45,53 +49,72 @@ export default function Documents() {
     base44.auth.me().then(setUser).catch(() => {});
   }, []);
 
+  // Debounce search
+  useEffect(() => {
+    const t = setTimeout(() => { setDebouncedSearch(search); setPage(0); }, 300);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  // Reset page when type filter changes
+  useEffect(() => { setPage(0); }, [typeFilter]);
+
   const isAdmin = user?.role === "admin";
 
-  const { data: documents = [], isLoading } = useQuery({
-    queryKey: ["documents", user?.email],
-    queryFn: () => isAdmin
-      ? base44.entities.Document.list("-created_at", 500)
-      : base44.entities.Document.filter({ uploaded_by: user?.email }, "-created_at", 500),
+  const { data: pageResult, isLoading } = useQuery({
+    queryKey: ["documents", user?.email, page, typeFilter, debouncedSearch],
+    queryFn: () => {
+      const filters = {};
+      if (!isAdmin) filters.uploaded_by = user.email;
+      if (typeFilter !== 'all') filters.document_type = typeFilter;
+      return base44.entities.Document.paginate(page, filters, '-created_at', debouncedSearch || null);
+    },
     enabled: !!user,
+    placeholderData: keepPreviousData,
   });
+
+  const documents = pageResult?.data ?? [];
+  const total     = pageResult?.total ?? 0;
 
   const { data: clients = [] } = useQuery({
     queryKey: ["clients-list", user?.email],
-    queryFn: () => user?.role === "admin"
+    queryFn: () => isAdmin
       ? base44.entities.Client.list("-created_at", 500)
       : base44.entities.Client.filter({ assigned_broker: user?.email }, "-created_at", 500),
     enabled: !!user,
-  });
-
-  const filtered = documents.filter(d => {
-    const matchSearch = !search || d.name?.toLowerCase().includes(search.toLowerCase()) || d.client_name?.toLowerCase().includes(search.toLowerCase());
-    const matchType = typeFilter === "all" || d.document_type === typeFilter;
-    return matchSearch && matchType;
   });
 
   const handleUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
     setUploading(true);
-    const { file_url } = await base44.integrations.Core.UploadFile({ file });
-    await base44.entities.Document.create({
-      name: uploadForm.name || file.name,
-      file_url,
-      client_id: uploadForm.client_id,
-      client_name: uploadForm.client_name,
-      document_type: uploadForm.document_type,
-      uploaded_by: user?.email,
-      version: 1
-    });
-    queryClient.invalidateQueries({ queryKey: ["documents"] });
-    setUploading(false);
-    setShowUpload(false);
-    setUploadForm({ name: "", document_type: "other", client_id: "", client_name: "" });
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      await base44.entities.Document.create({
+        name: uploadForm.name || file.name,
+        file_url,
+        client_id: uploadForm.client_id,
+        client_name: uploadForm.client_name,
+        document_type: uploadForm.document_type,
+        uploaded_by: user?.email,
+        version: 1
+      });
+      queryClient.invalidateQueries({ queryKey: ["documents"] });
+      setShowUpload(false);
+      setUploadForm({ name: "", document_type: "other", client_id: "", client_name: "" });
+    } catch (err) {
+      toast({ title: "Upload failed", description: err?.message || "Please try again.", variant: "destructive" });
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleDelete = async (docId) => {
-    await base44.entities.Document.delete(docId);
-    queryClient.invalidateQueries({ queryKey: ["documents"] });
+    try {
+      await base44.entities.Document.delete(docId);
+      queryClient.invalidateQueries({ queryKey: ["documents"] });
+    } catch (err) {
+      toast({ title: "Failed to delete document", description: err?.message || "Please try again.", variant: "destructive" });
+    }
   };
 
   if (!user) {
@@ -103,7 +126,7 @@ export default function Documents() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
           <h2 className="text-xl font-bold text-[#1a2744]">Documents</h2>
-          <p className="text-sm text-gray-400">{filtered.length} document{filtered.length !== 1 ? "s" : ""}</p>
+          <p className="text-sm text-gray-400">{total.toLocaleString()} document{total !== 1 ? "s" : ""}</p>
         </div>
         <Button onClick={() => setShowUpload(true)} className="bg-[#1a2744] hover:bg-[#243556]">
           <Upload className="w-4 h-4 mr-2" /> Upload Document
@@ -140,14 +163,14 @@ export default function Documents() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.length === 0 ? (
+              {documents.length === 0 && !isLoading ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-12 text-gray-400">
                     <FileText className="w-8 h-8 mx-auto mb-2 opacity-30" />No documents found
                   </TableCell>
                 </TableRow>
               ) : (
-                filtered.map(doc => (
+                documents.map(doc => (
                   <TableRow key={doc.id} className="hover:bg-blue-50/30 transition-colors">
                     <TableCell>
                       <div className="flex items-center gap-3">
@@ -181,6 +204,7 @@ export default function Documents() {
             </TableBody>
           </Table>
         </div>
+        <Pagination page={page} total={total} pageSize={PAGE_SIZE} onPageChange={setPage} isLoading={isLoading} />
       </Card>
 
       {/* Upload Modal */}

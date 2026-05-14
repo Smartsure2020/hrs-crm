@@ -4,11 +4,25 @@
 
 import { supabase } from '@/lib/supabaseClient';
 
+export const PAGE_SIZE = 50;
+
 async function apiCall(path, options = {}) {
-  const res = await fetch(path, options);
+  const { data: { session } } = await supabase.auth.getSession();
+  const headers = { ...(options.headers || {}) };
+  if (session?.access_token) {
+    headers['Authorization'] = `Bearer ${session.access_token}`;
+  }
+  const res = await fetch(path, { ...options, headers });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || `API error ${res.status}`);
   return data;
+}
+
+// Unwraps the { data, total } envelope that the API now always returns for list/filter,
+// so callers that just want an array continue to work without changes.
+function unwrapArray(result) {
+  if (Array.isArray(result)) return result;
+  return result?.data ?? result;
 }
 
 function makeEntityClient(entity) {
@@ -17,7 +31,7 @@ function makeEntityClient(entity) {
       const p = new URLSearchParams({ action: 'list' });
       if (sort != null) p.set('sort', sort);
       if (limit != null) p.set('limit', String(limit));
-      return apiCall(`/api/${entity}?${p}`);
+      return apiCall(`/api/${entity}?${p}`).then(unwrapArray);
     },
     get(id) {
       return apiCall(`/api/${entity}?action=get&id=${encodeURIComponent(id)}`);
@@ -47,6 +61,19 @@ function makeEntityClient(entity) {
       const p = new URLSearchParams({ action: 'filter' });
       if (sort != null) p.set('sort', sort);
       if (limit != null) p.set('limit', String(limit));
+      return apiCall(`/api/${entity}?${p}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filters }),
+      }).then(unwrapArray);
+    },
+    // Paginated query — returns { data: Row[], total: number }.
+    // page is 0-indexed. filters/search are applied server-side.
+    paginate(page, filters = {}, sort, search) {
+      const offset = page * PAGE_SIZE;
+      const p = new URLSearchParams({ action: 'filter', offset: String(offset), limit: String(PAGE_SIZE) });
+      if (sort != null) p.set('sort', sort);
+      if (search) p.set('search', search);
       return apiCall(`/api/${entity}?${p}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -118,11 +145,16 @@ export const base44 = {
   integrations: {
     Core: {
       async UploadFile({ file }) {
+        const { data: { session } } = await supabase.auth.getSession();
         const p = new URLSearchParams({ filename: file.name });
+        const headers = { 'Content-Type': file.type || 'application/octet-stream' };
+        if (session?.access_token) {
+          headers['Authorization'] = `Bearer ${session.access_token}`;
+        }
         const res = await fetch(`/api/upload-file?${p}`, {
           method: 'POST',
           body: file,
-          headers: { 'Content-Type': file.type || 'application/octet-stream' },
+          headers,
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Upload failed');

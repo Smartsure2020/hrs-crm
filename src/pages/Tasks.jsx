@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { base44, PAGE_SIZE } from "@/api/client";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
+import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +14,7 @@ import {
 } from "lucide-react";
 import moment from "moment";
 import TaskFormModal from "@/components/tasks/TaskFormModal";
+import { Pagination } from "@/components/shared/Pagination";
 
 const PRIORITY_COLORS = {
   low: "bg-gray-100 text-gray-600",
@@ -28,7 +30,9 @@ const STATUS_ICONS = {
 export default function Tasks() {
   const [user, setUser] = useState(null);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("active");
+  const [page, setPage] = useState(0);
   const [showForm, setShowForm] = useState(false);
   const [editTask, setEditTask] = useState(null);
   const queryClient = useQueryClient();
@@ -37,15 +41,29 @@ export default function Tasks() {
     base44.auth.me().then(setUser).catch(() => {});
   }, []);
 
+  // Debounce search
+  useEffect(() => {
+    const t = setTimeout(() => { setDebouncedSearch(search); setPage(0); }, 300);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  // Reset page when tab changes
+  useEffect(() => { setPage(0); }, [statusFilter]);
+
   const isAdmin = user?.role === "admin";
 
-  const { data: tasks = [], isLoading } = useQuery({
-    queryKey: ["tasks", user?.email],
-    queryFn: () => isAdmin
-      ? base44.entities.Task.list("-due_date", 500)
-      : base44.entities.Task.filter({ assigned_to: user?.email }, "-due_date", 500),
+  const { data: pageResult, isLoading } = useQuery({
+    queryKey: ["tasks", user?.email, page, debouncedSearch],
+    queryFn: () => {
+      const filters = isAdmin ? {} : { assigned_to: user.email };
+      return base44.entities.Task.paginate(page, filters, '-due_date', debouncedSearch || null);
+    },
     enabled: !!user,
+    placeholderData: keepPreviousData,
   });
+
+  const allTasks = pageResult?.data ?? [];
+  const total    = pageResult?.total ?? 0;
 
   const { data: clients = [] } = useQuery({
     queryKey: ["clients-list", user?.email],
@@ -60,15 +78,21 @@ export default function Tasks() {
       status: task.status === "completed" ? "pending" : "completed"
     }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["tasks"] }),
+    onError: (err) => toast({
+      title: "Failed to update task",
+      description: err?.message || "Please try again.",
+      variant: "destructive",
+    }),
   });
 
-  const filtered = tasks.filter(t => {
-    const matchSearch = !search || t.title?.toLowerCase().includes(search.toLowerCase()) || t.client_name?.toLowerCase().includes(search.toLowerCase());
-    if (statusFilter === "active") return matchSearch && t.status !== "completed";
-    if (statusFilter === "completed") return matchSearch && t.status === "completed";
-    if (statusFilter === "overdue") return matchSearch && moment(t.due_date).isBefore(moment(), "day") && t.status !== "completed";
-    if (statusFilter === "today") return matchSearch && moment(t.due_date).isSame(moment(), "day") && t.status !== "completed";
-    return matchSearch;
+  // Tab filtering is client-side within the current page.
+  // The "overdue" and "today" tabs reflect only the loaded page.
+  const filtered = allTasks.filter(t => {
+    if (statusFilter === "active")    return t.status !== "completed";
+    if (statusFilter === "completed") return t.status === "completed";
+    if (statusFilter === "overdue")   return moment(t.due_date).isBefore(moment(), "day") && t.status !== "completed";
+    if (statusFilter === "today")     return moment(t.due_date).isSame(moment(), "day") && t.status !== "completed";
+    return true;
   }).sort((a, b) => new Date(a.due_date) - new Date(b.due_date));
 
   if (!user) {
@@ -80,7 +104,7 @@ export default function Tasks() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
           <h2 className="text-xl font-bold text-[#1a2744]">Tasks & Reminders</h2>
-          <p className="text-sm text-gray-400">{filtered.length} task{filtered.length !== 1 ? "s" : ""}</p>
+          <p className="text-sm text-gray-400">{total.toLocaleString()} task{total !== 1 ? "s" : ""}</p>
         </div>
         <Button onClick={() => { setEditTask(null); setShowForm(true); }} className="bg-[#1a2744] hover:bg-[#243556]">
           <Plus className="w-4 h-4 mr-2" /> New Task
@@ -106,7 +130,7 @@ export default function Tasks() {
       </Card>
 
       <div className="space-y-2">
-        {filtered.length === 0 && (
+        {filtered.length === 0 && !isLoading && (
           <Card className="border-0 shadow-sm p-12 text-center text-gray-400">
             <CheckCircle2 className="w-8 h-8 mx-auto mb-2 opacity-30" />
             No tasks found
@@ -162,6 +186,8 @@ export default function Tasks() {
           );
         })}
       </div>
+
+      <Pagination page={page} total={total} pageSize={PAGE_SIZE} onPageChange={setPage} isLoading={isLoading} />
 
       <TaskFormModal
         open={showForm}

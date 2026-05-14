@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Trash2 } from "lucide-react";
+import { toast } from "@/components/ui/use-toast";
 
 const POLICY_TYPES = ["personal", "commercial"];
 const STAGES = [
@@ -66,49 +67,58 @@ export default function DealFormModal({ open, onClose, onSuccess, user, deal, cl
 
   const handleSubmit = async () => {
     setLoading(true);
-    let resolvedClientId = form.client_id;
-    let resolvedClientName = form.client_name;
+    try {
+      let resolvedClientId = form.client_id;
+      let resolvedClientName = form.client_name;
 
-    // Create new client if needed
-    if (form.client_id === "__new__" && newClientName.trim()) {
-      const newClient = await base44.entities.Client.create({
-        client_name: newClientName.trim(),
-        assigned_broker: form.assigned_broker || user?.email,
-        broker_name: form.broker_name || user?.full_name,
-        status: "prospect",
+      if (form.client_id === "__new__" && newClientName.trim()) {
+        const newClient = await base44.entities.Client.create({
+          client_name: newClientName.trim(),
+          assigned_broker: form.assigned_broker || user?.email,
+          broker_name: form.broker_name || user?.full_name,
+          status: "prospect",
+        });
+        resolvedClientId = newClient.id;
+        resolvedClientName = newClientName.trim();
+      }
+
+      const data = {
+        ...form,
+        client_id: resolvedClientId,
+        client_name: resolvedClientName,
+        estimated_premium: form.estimated_premium ? parseFloat(form.estimated_premium) : 0
+      };
+      if (deal) {
+        await base44.entities.Deal.update(deal.id, data);
+      } else {
+        await base44.entities.Deal.create(data);
+      }
+      await base44.entities.ActivityLog.create({
+        action: `${deal ? "Updated" : "Created"} deal: ${form.client_name} - ${form.policy_type}`,
+        entity_type: "deal", entity_name: form.client_name,
+        user_email: user?.email, user_name: user?.full_name
       });
-      resolvedClientId = newClient.id;
-      resolvedClientName = newClientName.trim();
+      onSuccess?.();
+      onClose();
+    } catch (err) {
+      toast({ title: "Failed to save deal", description: err?.message || "Please try again.", variant: "destructive" });
+    } finally {
+      setLoading(false);
     }
-
-    const data = {
-      ...form,
-      client_id: resolvedClientId,
-      client_name: resolvedClientName,
-      estimated_premium: form.estimated_premium ? parseFloat(form.estimated_premium) : 0
-    };
-    if (deal) {
-      await base44.entities.Deal.update(deal.id, data);
-    } else {
-      await base44.entities.Deal.create(data);
-    }
-    await base44.entities.ActivityLog.create({
-      action: `${deal ? "Updated" : "Created"} deal: ${form.client_name} - ${form.policy_type}`,
-      entity_type: "deal", entity_name: form.client_name,
-      user_email: user?.email, user_name: user?.full_name
-    });
-    setLoading(false);
-    onSuccess?.();
-    onClose();
   };
 
   const handleDelete = async () => {
     if (!deal) return;
     setLoading(true);
-    await base44.entities.Deal.delete(deal.id);
-    setLoading(false);
-    onSuccess?.();
-    onClose();
+    try {
+      await base44.entities.Deal.delete(deal.id);
+      onSuccess?.();
+      onClose();
+    } catch (err) {
+      toast({ title: "Failed to delete deal", description: err?.message || "Please try again.", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
