@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/client";
+import { useUserRole } from "@/lib/AuthContext";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter
 } from "@/components/ui/dialog";
@@ -25,6 +26,7 @@ const PRIORITIES = ["low", "medium", "high", "urgent"];
 const STATUSES = ["pending", "in_progress", "completed", "overdue"];
 
 export default function TaskFormModal({ open, onClose, onSuccess, user, task, clients }) {
+  const { isAdmin } = useUserRole();
   const [loading, setLoading] = useState(false);
   const [brokers, setBrokers] = useState([]);
   const [form, setForm] = useState({
@@ -46,10 +48,10 @@ export default function TaskFormModal({ open, onClose, onSuccess, user, task, cl
   }, [task, open]);
 
   useEffect(() => {
-    if (user?.role === "admin") {
+    if (isAdmin) {
       base44.entities.User.list().then(setBrokers);
     }
-  }, [user]);
+  }, [isAdmin]);
 
   const handleSubmit = async () => {
     if (!form.title || !form.due_date) return;
@@ -144,7 +146,7 @@ export default function TaskFormModal({ open, onClose, onSuccess, user, task, cl
                 </Select>
               </div>
             )}
-            {user?.role === "admin" && brokers.length > 0 && (
+            {isAdmin && brokers.length > 0 && (
               <div className="col-span-2">
                 <Label className="text-xs text-gray-500">Assigned To</Label>
                 <Select value={form.assigned_to} onValueChange={v => {

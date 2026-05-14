@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/client";
+import { useUserRole } from "@/lib/AuthContext";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter
 } from "@/components/ui/dialog";
@@ -19,6 +20,7 @@ const INSURERS = [
 ];
 
 export default function PolicyFormModal({ open, onClose, onSuccess, user, policy, clients, defaultClientId, defaultClientName }) {
+  const { canSeeAll } = useUserRole();
   const [loading, setLoading] = useState(false);
   const [uploadingDoc, setUploadingDoc] = useState(false);
   const [pendingFile, setPendingFile] = useState(null);
@@ -36,10 +38,10 @@ export default function PolicyFormModal({ open, onClose, onSuccess, user, policy
   });
 
   useEffect(() => {
-    if (open && (user?.role === "admin" || user?.role === "admin_staff")) {
+    if (open && canSeeAll) {
       base44.entities.User.list().then(setBrokers).catch(() => {});
     }
-  }, [open, user]);
+  }, [open, canSeeAll]);
 
   useEffect(() => {
     if (policy) {
@@ -233,7 +235,7 @@ export default function PolicyFormModal({ open, onClose, onSuccess, user, policy
               <Input type="date" value={form.renewal_date} onChange={e => setForm({...form, renewal_date: e.target.value})} />
             </div>
 
-            {(user?.role === "admin" || user?.role === "admin_staff") && brokers.length > 0 ? (
+            {canSeeAll && brokers.length > 0 ? (
               <div className="col-span-2">
                 <Label className="text-xs text-gray-500">Assigned Broker</Label>
                 <Select value={form.assigned_broker || ""} onValueChange={handleBrokerChange}>

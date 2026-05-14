@@ -1,5 +1,6 @@
 import React from "react";
 import { base44 } from "@/api/client";
+import { useUserRole } from "@/lib/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { RefreshCw } from "lucide-react";
@@ -19,7 +20,7 @@ const STAGE_LABELS = {
 };
 
 export default function DashboardCharts({ user }) {
-  const isAdmin = user?.role === "admin";
+  const { isAdmin } = useUserRole();
 
   const { data: deals = [], isLoading: loadingDeals } = useQuery({
     queryKey: ["deals-report"],

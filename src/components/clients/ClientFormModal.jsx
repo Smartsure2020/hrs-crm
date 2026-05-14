@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/client";
+import { useUserRole } from "@/lib/AuthContext";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter
 } from "@/components/ui/dialog";
@@ -52,6 +53,7 @@ const defaultForm = (user, defaultStatus = "prospect") => ({
 });
 
 export default function ClientFormModal({ open, onClose, onSuccess, user, client, defaultStatus }) {
+  const { canSeeAll } = useUserRole();
   const [loading, setLoading] = useState(false);
   const [brokers, setBrokers] = useState([]);
   const [duplicates, setDuplicates] = useState(null); // { list, submitForm } | null
@@ -74,10 +76,10 @@ export default function ClientFormModal({ open, onClose, onSuccess, user, client
   }, [client, open, user, defaultStatus]);
 
   useEffect(() => {
-    if (user?.role === "admin" || user?.role === "admin_staff") {
+    if (canSeeAll) {
       base44.entities.User.list().then(setBrokers);
     }
-  }, [user]);
+  }, [canSeeAll]);
 
   const set = (field) => (e) => setForm(f => ({ ...f, [field]: e.target.value }));
   const setVal = (field) => (v) => setForm(f => ({ ...f, [field]: v }));
@@ -276,7 +278,7 @@ export default function ClientFormModal({ open, onClose, onSuccess, user, client
 
             {/* ── BROKER & REFERRAL ── */}
             <SectionTitle title="Broker & Referral" />
-            {(user?.role === "admin" || user?.role === "admin_staff") && brokers.length > 0 ? (
+            {canSeeAll && brokers.length > 0 ? (
               <div className="col-span-2">
                 <Field label="Assigned Broker">
                   <Select value={form.assigned_broker} onValueChange={handleBrokerChange}>

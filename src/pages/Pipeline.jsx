@@ -76,7 +76,7 @@ const COL_WIDTHS = "grid-cols-[2fr_1.5fr_1.7fr_3fr_1.2fr]";
 
 export default function Pipeline() {
   const { user } = useAuth();
-  const { isAdmin } = useUserRole();
+  const { isAdmin, isAdminStaff } = useUserRole();
   const [stageFilter, setStageFilter] = useState("all");
   const [editingCell, setEditingCell] = useState(null);
   const [pending, setPending]     = useState({});
@@ -284,7 +284,7 @@ export default function Pipeline() {
     </div>
   );
 
-  if (user?.role === "admin_staff") return (
+  if (isAdminStaff) return (
     <div className="flex items-center justify-center h-full">
       <p className="text-gray-400">Access denied. Pipeline is not available for your role.</p>
     </div>

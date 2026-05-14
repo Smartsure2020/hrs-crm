@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/client";
+import { useUserRole } from "@/lib/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,13 +29,12 @@ const HEADERS = [
 const clean = (v) => (v === null || v === undefined || v === "null" || v === "undefined") ? "" : v;
 
 export default function ClientReport({ user }) {
+  const { canSeeAll: isAdmin } = useUserRole();
   const [advisorFilter, setAdvisorFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [previewing, setPreviewing] = useState(false);
-
-  const isAdmin = user?.role === "admin" || user?.role === "admin_staff";
 
   const { data: clients = [], isLoading } = useQuery({
     queryKey: ["clients-report"],

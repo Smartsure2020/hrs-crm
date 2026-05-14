@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/client";
+import { useUserRole } from "@/lib/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -27,11 +28,10 @@ const STATUS_COLORS = {
 };
 
 export default function InsurerReport({ user }) {
+  const { canSeeAll: isAdmin } = useUserRole();
   const [brokerFilter, setBrokerFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedInsurer, setSelectedInsurer] = useState("all");
-
-  const isAdmin = user?.role === "admin" || user?.role === "admin_staff";
 
   const { data: policies = [], isLoading } = useQuery({
     queryKey: ["policies-insurer-report"],

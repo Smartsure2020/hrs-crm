@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { useAuth } from "@/lib/AuthContext";
+import { useAuth, useUserRole } from "@/lib/AuthContext";
 import {
   LayoutDashboard, Users, KanbanSquare, FileText,
   CheckSquare, Shield, BarChart3, ChevronLeft, ChevronRight,
@@ -36,6 +36,7 @@ export default function Layout({ children, currentPageName }) {
   const [collapsed, setCollapsed]   = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const { user, isLoadingAuth, signOut } = useAuth();
+  const { isAdmin, isAdminStaff } = useUserRole();
 
   // ── Access gate ──────────────────────────────────────────────
   if (isLoadingAuth) {
@@ -47,12 +48,9 @@ export default function Layout({ children, currentPageName }) {
   }
 
   // Show pending / rejected screen for non-admins that haven't been approved
-  if (user && user.role !== "admin" && user.status !== "active") {
+  if (user && !isAdmin && user.status !== "active") {
     return <PendingApproval status={user.status} user={user} onLogout={signOut} />;
   }
-
-  const isAdmin = user?.role === "admin";
-  const isAdminStaff = user?.role === "admin_staff";
 
   const navItems = isAdmin
     ? [...BROKER_NAV, ADMIN_EXTRA, ADMIN_AUDIT]

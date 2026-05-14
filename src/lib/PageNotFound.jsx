@@ -1,10 +1,11 @@
 import { useLocation } from 'react-router-dom';
-import { useAuth } from '@/lib/AuthContext';
+import { useAuth, useUserRole } from '@/lib/AuthContext';
 
 export default function PageNotFound({}) {
     const location = useLocation();
     const pageName = location.pathname.substring(1);
-    const { user, isAuthenticated } = useAuth();
+    const { isAuthenticated } = useAuth();
+    const { isAdmin } = useUserRole();
     
     return (
         <div className="min-h-screen flex items-center justify-center p-6 bg-slate-50">
@@ -27,7 +28,7 @@ export default function PageNotFound({}) {
                     </div>
                     
                     {/* Admin Note */}
-                    {isAuthenticated && user?.role === 'admin' && (
+                    {isAuthenticated && isAdmin && (
                         <div className="mt-8 p-4 bg-slate-100 rounded-lg border border-slate-200">
                             <div className="flex items-start space-x-3">
                                 <div className="flex-shrink-0 w-5 h-5 rounded-full bg-orange-100 flex items-center justify-center mt-0.5">
