@@ -44,7 +44,6 @@ export default function ClientProfile() {
     queryFn: () => base44.entities.Client.get(clientId),
     enabled: !!clientId,
   });
-  const client = clients[0];
 
   // Log client view once user and client are both loaded
   useEffect(() => {
