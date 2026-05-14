@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { base44, PAGE_SIZE } from "@/api/client";
 import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

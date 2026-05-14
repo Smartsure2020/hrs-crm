@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/client";
 import {
   LayoutDashboard, Users, KanbanSquare, FileText,
   CheckSquare, Shield, BarChart3, ChevronLeft, ChevronRight,
-  LogOut, Bell, Search, Menu, X, UserCog, AlertCircle, CalendarClock, ClipboardList, ScrollText
+  LogOut, Bell, Search, Menu, X, UserCog, CalendarClock, ClipboardList, ScrollText
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import PendingApproval from "@/components/auth/PendingApproval";

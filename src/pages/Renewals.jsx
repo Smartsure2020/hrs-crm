@@ -3,7 +3,7 @@ import { base44 } from "@/api/client";
 import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Shield, Search, CalendarClock } from "lucide-react";
+import { Search, CalendarClock } from "lucide-react";
 import moment from "moment";
 
 const STATUS_COLORS = {

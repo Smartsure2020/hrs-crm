@@ -8,13 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter
+  Dialog, DialogContent, DialogHeader, DialogTitle
 } from "@/components/ui/dialog";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 } from "@/components/ui/table";
 import {
-  Upload, Search, FileText, Download, Loader2, RefreshCw, Trash2, Plus
+  Upload, Search, FileText, Download, Loader2, RefreshCw, Trash2
 } from "lucide-react";
 import moment from "moment";
 import { Pagination } from "@/components/shared/Pagination";

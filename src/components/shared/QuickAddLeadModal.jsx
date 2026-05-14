@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { base44 } from "@/api/client";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter

@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/client";
-import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RefreshCw, BarChart3, ShieldAlert, ChevronRight } from "lucide-react";
 import ClientReport from "@/components/reports/ClientReport";
 import DashboardCharts from "@/components/reports/DashboardCharts";

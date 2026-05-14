@@ -1,8 +1,7 @@
 import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
-import { Upload, AlertTriangle, CheckCircle2, FileText, Download } from "lucide-react";
+import { Upload, AlertTriangle, CheckCircle2, Download } from "lucide-react";
 import { parseCSV, downloadTemplate } from "@/lib/csvUtils";
 
 /**
