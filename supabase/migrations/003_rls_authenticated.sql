@@ -88,7 +88,7 @@ CREATE POLICY "brokers_own_documents" ON documents
     uploaded_by = auth.jwt()->>'email'
     OR EXISTS (
       SELECT 1 FROM clients c
-      WHERE c.id::text = documents.client_id
+      WHERE c.id = documents.client_id
         AND c.assigned_broker = auth.jwt()->>'email'
     )
     OR is_admin()
@@ -109,7 +109,7 @@ CREATE POLICY "brokers_own_tasks" ON tasks
     assigned_to = auth.jwt()->>'email'
     OR EXISTS (
       SELECT 1 FROM clients c
-      WHERE c.id::text = tasks.client_id
+      WHERE c.id = tasks.client_id
         AND c.assigned_broker = auth.jwt()->>'email'
     )
     OR is_admin()
