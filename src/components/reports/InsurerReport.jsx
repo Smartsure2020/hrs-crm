@@ -31,6 +31,8 @@ export default function InsurerReport({ user }) {
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedInsurer, setSelectedInsurer] = useState("all");
 
+  const isAdmin = user?.role === "admin" || user?.role === "admin_staff";
+
   const { data: policies = [], isLoading } = useQuery({
     queryKey: ["policies-insurer-report"],
     queryFn: () => base44.entities.Policy.list("-created_at", 1000),
@@ -40,7 +42,7 @@ export default function InsurerReport({ user }) {
   const { data: brokers = [] } = useQuery({
     queryKey: ["brokers-report"],
     queryFn: () => base44.entities.User.list(),
-    enabled: !!user,
+    enabled: !!user && isAdmin,
   });
 
   const filtered = policies.filter(p => {
@@ -117,13 +119,15 @@ export default function InsurerReport({ user }) {
               {INSURERS.map(i => <SelectItem key={i} value={i}>{i}</SelectItem>)}
             </SelectContent>
           </Select>
-          <Select value={brokerFilter} onValueChange={setBrokerFilter}>
-            <SelectTrigger className="w-[180px]"><SelectValue placeholder="All Brokers" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Brokers</SelectItem>
-              {brokers.map(b => <SelectItem key={b.email} value={b.email}>{b.full_name || b.email}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          {isAdmin && (
+            <Select value={brokerFilter} onValueChange={setBrokerFilter}>
+              <SelectTrigger className="w-[180px]"><SelectValue placeholder="All Brokers" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Brokers</SelectItem>
+                {brokers.map(b => <SelectItem key={b.email} value={b.email}>{b.full_name || b.email}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          )}
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-[140px]"><SelectValue placeholder="All Status" /></SelectTrigger>
             <SelectContent>
@@ -231,8 +235,8 @@ export default function InsurerReport({ user }) {
         </CardContent>
       </Card>
 
-      {/* Broker Breakdown */}
-      <Card className="border-0 shadow-sm">
+      {/* Broker Breakdown — admin only */}
+      {isAdmin && <Card className="border-0 shadow-sm">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-semibold text-[#1a2744]">Broker Breakdown by Insurer</CardTitle>
         </CardHeader>
@@ -267,7 +271,7 @@ export default function InsurerReport({ user }) {
             ))}
           </div>
         </CardContent>
-      </Card>
+      </Card>}
     </div>
   );
 }

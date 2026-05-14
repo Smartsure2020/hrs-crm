@@ -34,6 +34,8 @@ export default function ClientReport({ user }) {
   const [dateTo, setDateTo] = useState("");
   const [previewing, setPreviewing] = useState(false);
 
+  const isAdmin = user?.role === "admin" || user?.role === "admin_staff";
+
   const { data: clients = [], isLoading } = useQuery({
     queryKey: ["clients-report"],
     queryFn: () => base44.entities.Client.list("-created_at", 2000),
@@ -43,7 +45,7 @@ export default function ClientReport({ user }) {
   const { data: brokers = [] } = useQuery({
     queryKey: ["brokers-report"],
     queryFn: () => base44.entities.User.list(),
-    enabled: !!user,
+    enabled: !!user && isAdmin,
   });
 
   const filtered = clients.filter(c => {
@@ -88,16 +90,18 @@ export default function ClientReport({ user }) {
       <Card className="border-0 shadow-sm p-5">
         <h3 className="font-semibold text-[#1a2744] text-sm mb-4">Client Report — Filters</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <div>
-            <label className="text-xs text-gray-500 mb-1 block">Advisor Name</label>
-            <Select value={advisorFilter} onValueChange={setAdvisorFilter}>
-              <SelectTrigger><SelectValue placeholder="All Advisors" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Advisors</SelectItem>
-                {brokers.map(b => <SelectItem key={b.email} value={b.email}>{b.full_name || b.email}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
+          {isAdmin && (
+            <div>
+              <label className="text-xs text-gray-500 mb-1 block">Advisor Name</label>
+              <Select value={advisorFilter} onValueChange={setAdvisorFilter}>
+                <SelectTrigger><SelectValue placeholder="All Advisors" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Advisors</SelectItem>
+                  {brokers.map(b => <SelectItem key={b.email} value={b.email}>{b.full_name || b.email}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <div>
             <label className="text-xs text-gray-500 mb-1 block">Client Type</label>
             <Select value={typeFilter} onValueChange={setTypeFilter}>
