@@ -41,9 +41,9 @@ export default function ClientProfile() {
     base44.auth.me().then(setUser).catch(() => {});
   }, []);
 
-  const { data: clients = [] } = useQuery({
+  const { data: client } = useQuery({
     queryKey: ["client", clientId],
-    queryFn: () => base44.entities.Client.filter({ id: clientId }),
+    queryFn: () => base44.entities.Client.get(clientId),
     enabled: !!clientId,
   });
   const client = clients[0];
