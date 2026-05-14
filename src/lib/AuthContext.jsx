@@ -34,15 +34,18 @@ export function AuthProvider({ children }) {
 
   async function fetchProfile(authUser) {
     try {
-      const { data: profile } = await supabase
+      const { data: profile, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', authUser.id)
-        .single();
-      setUser({ ...profile, email: authUser.email });
+        .maybeSingle();
+      if (error || !profile) {
+        setUser({ id: authUser.id, email: authUser.email, role: 'broker', status: 'pending' });
+      } else {
+        setUser({ ...profile, email: authUser.email });
+      }
       setIsAuthenticated(true);
     } catch {
-      // Profile not yet created — still mark as authenticated
       setUser({ id: authUser.id, email: authUser.email, role: 'broker', status: 'pending' });
       setIsAuthenticated(true);
     } finally {
