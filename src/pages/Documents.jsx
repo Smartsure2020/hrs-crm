@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { base44, PAGE_SIZE } from "@/api/client";
+import { useAuth, useUserRole } from "@/lib/AuthContext";
 import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -33,7 +34,8 @@ const DOC_TYPE_COLORS = {
 };
 
 export default function Documents() {
-  const [user, setUser] = useState(null);
+  const { user } = useAuth();
+  const { isAdmin } = useUserRole();
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
@@ -45,10 +47,6 @@ export default function Documents() {
   });
   const queryClient = useQueryClient();
 
-  useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-  }, []);
-
   // Debounce search
   useEffect(() => {
     const t = setTimeout(() => { setDebouncedSearch(search); setPage(0); }, 300);
@@ -57,8 +55,6 @@ export default function Documents() {
 
   // Reset page when type filter changes
   useEffect(() => { setPage(0); }, [typeFilter]);
-
-  const isAdmin = user?.role === "admin";
 
   const { data: pageResult, isLoading } = useQuery({
     queryKey: ["documents", user?.email, page, typeFilter, debouncedSearch],

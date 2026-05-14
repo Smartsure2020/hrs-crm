@@ -107,3 +107,18 @@ export function useAuth() {
   if (!ctx) throw new Error('useAuth must be used within an AuthProvider');
   return ctx;
 }
+
+export function useUserRole() {
+  const { user } = useAuth();
+  const isAdmin      = user?.role === 'admin';
+  const isAdminStaff = user?.role === 'admin_staff';
+  const isManager    = user?.role === 'manager';
+  return {
+    isAdmin,
+    isAdminStaff,
+    isManager,
+    isBroker:        !isAdmin && !isAdminStaff && !isManager,
+    canSeeAll:       isAdmin || isAdminStaff,
+    canImportExport: isAdmin || isManager,
+  };
+}

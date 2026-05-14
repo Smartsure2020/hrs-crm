@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { base44 } from "@/api/client";
+import { useAuth, useUserRole } from "@/lib/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,16 +18,10 @@ import UpcomingTasks from "@/components/dashboard/UpcomingTasks";
 import QuickAddLeadModal from "@/components/shared/QuickAddLeadModal";
 
 export default function Dashboard() {
-  const [user, setUser] = useState(null);
+  const { user } = useAuth();
+  const { isAdmin, isAdminStaff } = useUserRole();
   const [showAddLead, setShowAddLead] = useState(false);
   const queryClient = useQueryClient();
-
-  useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-  }, []);
-
-  const isAdmin = user?.role === "admin";
-  const isAdminStaff = user?.role === "admin_staff";
   const brokerFilter = isAdmin || isAdminStaff ? {} : { assigned_broker: user?.email };
   const taskFilter = isAdmin ? {} : { assigned_to: user?.email };
 

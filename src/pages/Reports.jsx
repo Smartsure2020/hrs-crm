@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/client";
+import React, { useState } from "react";
+import { useAuth, useUserRole } from "@/lib/AuthContext";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, BarChart3, ShieldAlert, ChevronRight } from "lucide-react";
@@ -29,14 +29,11 @@ const REPORTS = [
 ];
 
 export default function Reports() {
-  const [user, setUser] = useState(null);
+  const { user } = useAuth();
+  const { isAdmin, isManager } = useUserRole();
   const [activeReport, setActiveReport] = useState(null);
 
-  useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-  }, []);
-
-  const isPrivileged = user?.role === "admin" || user?.role === "manager";
+  const isPrivileged = isAdmin || isManager;
 
   if (!user) {
     return <div className="flex items-center justify-center h-full"><RefreshCw className="w-5 h-5 animate-spin text-gray-400" /></div>;

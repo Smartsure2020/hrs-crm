@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { base44 } from "@/api/client";
+import { useAuth, useUserRole } from "@/lib/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -30,7 +31,8 @@ const STATUS_COLORS = {
 };
 
 export default function Policies() {
-  const [user, setUser] = useState(null);
+  const { user } = useAuth();
+  const { isAdmin, canImportExport } = useUserRole();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [renewalFilter, setRenewalFilter] = useState("all");
@@ -40,13 +42,6 @@ export default function Policies() {
   const [editPolicy, setEditPolicy] = useState(null);
   const [showImport, setShowImport] = useState(false);
   const queryClient = useQueryClient();
-
-  useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-  }, []);
-
-  const isAdmin = user?.role === "admin";
-  const canImportExport = isAdmin || user?.role === "manager";
 
   const POLICY_COLUMNS = ["policy_number", "client_name", "insurer", "policy_type", "premium", "status", "start_date", "renewal_date", "broker_name", "notes"];
   const POLICY_HEADERS = ["Policy Number", "Client Name", "Insurer", "Type", "Premium (R)", "Status", "Start Date", "Renewal Date", "Broker", "Notes"];

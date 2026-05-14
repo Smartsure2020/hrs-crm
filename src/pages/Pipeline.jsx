@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { base44 } from "@/api/client";
+import { useAuth, useUserRole } from "@/lib/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
@@ -74,7 +75,8 @@ const toDbStage = (s) => UI_TO_DB_STAGE[s] || s;
 const COL_WIDTHS = "grid-cols-[2fr_1.5fr_1.7fr_3fr_1.2fr]";
 
 export default function Pipeline() {
-  const [user, setUser]           = useState(null);
+  const { user } = useAuth();
+  const { isAdmin } = useUserRole();
   const [stageFilter, setStageFilter] = useState("all");
   const [editingCell, setEditingCell] = useState(null);
   const [pending, setPending]     = useState({});
@@ -83,12 +85,6 @@ export default function Pipeline() {
   const [editDeal, setEditDeal]   = useState(null);
   const [showNewDeal, setShowNewDeal] = useState(false);
   const queryClient               = useQueryClient();
-
-  useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-  }, []);
-
-  const isAdmin = user?.role === "admin";
 
   const { data: rawDeals = [], isLoading } = useQuery({
     queryKey: ["deals", user?.email],

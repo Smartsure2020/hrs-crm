@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { base44, PAGE_SIZE } from "@/api/client";
+import { useAuth, useUserRole } from "@/lib/AuthContext";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -47,17 +48,14 @@ const ACTION_COLORS = {
 };
 
 export default function AuditLogs() {
-  const [user, setUser] = useState(null);
+  const { user } = useAuth();
+  const { isAdmin, isAdminStaff } = useUserRole();
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [actionFilter, setActionFilter] = useState("all");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [page, setPage] = useState(0);
-
-  useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-  }, []);
 
   // Debounce search — reset to page 0 on new term
   useEffect(() => {
@@ -68,7 +66,7 @@ export default function AuditLogs() {
   // Reset to page 0 when server-side filters change
   useEffect(() => { setPage(0); }, [actionFilter]);
 
-  const isPrivileged = user?.role === "admin" || user?.role === "admin_staff";
+  const isPrivileged = isAdmin || isAdminStaff;
 
   const { data: pageResult, isLoading, refetch } = useQuery({
     queryKey: ["audit-logs", page, actionFilter, debouncedSearch],

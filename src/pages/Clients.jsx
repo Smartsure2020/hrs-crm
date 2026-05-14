@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { base44, PAGE_SIZE } from "@/api/client";
+import { useAuth, useUserRole } from "@/lib/AuthContext";
 import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -31,7 +32,8 @@ const STATUS_COLORS = {
 
 export default function Clients() {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
+  const { user } = useAuth();
+  const { isAdmin, isAdminStaff, canSeeAll, canImportExport } = useUserRole();
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
@@ -43,10 +45,6 @@ export default function Clients() {
   const [showImport, setShowImport] = useState(false);
   const queryClient = useQueryClient();
 
-  useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-  }, []);
-
   // Debounce search input — fires query 300 ms after typing stops
   useEffect(() => {
     const t = setTimeout(() => { setDebouncedSearch(search); setPage(0); }, 300);
@@ -55,11 +53,6 @@ export default function Clients() {
 
   // Reset to page 1 when any dropdown filter changes
   useEffect(() => { setPage(0); }, [statusFilter, typeFilter, brokerFilter]);
-
-  const isAdmin = user?.role === "admin";
-  const isAdminStaff = user?.role === "admin_staff";
-  const canSeeAll = isAdmin || isAdminStaff;
-  const canImportExport = isAdmin || user?.role === "manager";
 
   const CLIENT_COLUMNS = ["id", "client_type", "status", "client_name", "first_name", "surname", "initials", "id_number", "company_name", "company_reg", "email", "phone", "street_address", "suburb", "city", "province", "postal_code", "current_insurer", "current_policy_no", "broker_name", "notes"];
   const CLIENT_HEADERS = ["ID", "Type", "Status", "Client Name", "First Name", "Surname", "Initials", "ID Number", "Company Name", "Company Reg", "Email", "Phone", "Street Address", "Suburb", "City", "Province", "Postal Code", "Current Insurer", "Current Policy No", "Broker", "Notes"];

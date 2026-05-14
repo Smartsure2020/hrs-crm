@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { base44, PAGE_SIZE } from "@/api/client";
+import { useAuth, useUserRole } from "@/lib/AuthContext";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
@@ -27,7 +28,8 @@ const STATUS_ICONS = {
 };
 
 export default function Tasks() {
-  const [user, setUser] = useState(null);
+  const { user } = useAuth();
+  const { isAdmin } = useUserRole();
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("active");
@@ -35,10 +37,6 @@ export default function Tasks() {
   const [showForm, setShowForm] = useState(false);
   const [editTask, setEditTask] = useState(null);
   const queryClient = useQueryClient();
-
-  useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-  }, []);
 
   // Debounce search
   useEffect(() => {
@@ -48,8 +46,6 @@ export default function Tasks() {
 
   // Reset page when tab changes
   useEffect(() => { setPage(0); }, [statusFilter]);
-
-  const isAdmin = user?.role === "admin";
 
   const { data: pageResult, isLoading } = useQuery({
     queryKey: ["tasks", user?.email, page, debouncedSearch],

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { base44 } from "@/api/client";
+import { useAuth } from "@/lib/AuthContext";
 import {
   LayoutDashboard, Users, KanbanSquare, FileText,
   CheckSquare, Shield, BarChart3, ChevronLeft, ChevronRight,
@@ -35,19 +35,10 @@ const ADMIN_AUDIT = { name: "Audit Logs", icon: ScrollText, page: "AuditLogs" };
 export default function Layout({ children, currentPageName }) {
   const [collapsed, setCollapsed]   = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [user, setUser]             = useState(null);
-  const [loading, setLoading]       = useState(true);
-
-  useEffect(() => {
-    base44.auth.me()
-      .then(u => { setUser(u); setLoading(false); })
-      .catch(() => { setLoading(false); });
-  }, []);
-
-  const handleLogout = () => base44.auth.logout();
+  const { user, isLoadingAuth, signOut } = useAuth();
 
   // ── Access gate ──────────────────────────────────────────────
-  if (loading) {
+  if (isLoadingAuth) {
     return (
       <div className="min-h-screen bg-[#f8f9fb] flex items-center justify-center">
         <div className="w-6 h-6 border-2 border-[#1a2744] border-t-transparent rounded-full animate-spin" />
@@ -57,7 +48,7 @@ export default function Layout({ children, currentPageName }) {
 
   // Show pending / rejected screen for non-admins that haven't been approved
   if (user && user.role !== "admin" && user.status !== "active") {
-    return <PendingApproval status={user.status} user={user} onLogout={handleLogout} />;
+    return <PendingApproval status={user.status} user={user} onLogout={signOut} />;
   }
 
   const isAdmin = user?.role === "admin";
@@ -141,7 +132,7 @@ export default function Layout({ children, currentPageName }) {
               </div>
             </div>
           )}
-          <button onClick={handleLogout}
+          <button onClick={signOut}
             className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-white/50 hover:text-white hover:bg-white/8 transition-all">
             <LogOut className="w-[18px] h-[18px]" />
             {!collapsed && <span className="text-sm">Sign Out</span>}

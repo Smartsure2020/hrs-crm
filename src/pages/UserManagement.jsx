@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { base44 } from "@/api/client";
+import { useAuth, useUserRole } from "@/lib/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -19,19 +20,16 @@ const STATUS_COLORS = {
 };
 
 export default function UserManagement() {
-  const [user, setUser] = useState(null);
+  const { user } = useAuth();
+  const { isAdmin } = useUserRole();
   const [statusFilter, setStatusFilter] = useState("all");
   const [showInvite, setShowInvite] = useState(false);
   const queryClient = useQueryClient();
 
-  useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-  }, []);
-
   const { data: users = [], isLoading, refetch } = useQuery({
     queryKey: ["all-users"],
     queryFn: () => base44.entities.User.list(),
-    enabled: !!user && user.role === "admin",
+    enabled: !!user && isAdmin,
     refetchInterval: 30000,
   });
 
@@ -61,7 +59,7 @@ export default function UserManagement() {
     queryClient.invalidateQueries({ queryKey: ["all-users"] });
   };
 
-  if (user?.role !== "admin") {
+  if (!isAdmin) {
     return (
       <div className="flex items-center justify-center h-full">
         <p className="text-gray-400">Access denied.</p>

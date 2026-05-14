@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/client";
+import { useAuth, useUserRole } from "@/lib/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -29,17 +30,14 @@ export default function ClientProfile() {
   const params = new URLSearchParams(window.location.search);
   const clientId = params.get("id");
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
+  const { user } = useAuth();
+  const { isAdminStaff } = useUserRole();
   const [showEdit, setShowEdit] = useState(false);
   const [showDeal, setShowDeal] = useState(false);
   const [editDeal, setEditDeal] = useState(null);
   const [showPolicy, setShowPolicy] = useState(false);
   const [editPolicy, setEditPolicy] = useState(null);
   const queryClient = useQueryClient();
-
-  useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-  }, []);
 
   const { data: client } = useQuery({
     queryKey: ["client", clientId],
@@ -94,8 +92,6 @@ export default function ClientProfile() {
   if (!client) {
     return <div className="flex items-center justify-center h-full"><RefreshCw className="w-5 h-5 animate-spin text-gray-400" /></div>;
   }
-
-  const isAdminStaff = user?.role === "admin_staff";
 
   const STAGE_COLORS = {
     lead_received: "bg-gray-100 text-gray-700",

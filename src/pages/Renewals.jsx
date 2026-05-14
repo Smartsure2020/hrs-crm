@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/client";
 import { useQuery } from "@tanstack/react-query";
+import { useAuth, useUserRole } from "@/lib/AuthContext";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Search, CalendarClock } from "lucide-react";
@@ -14,18 +15,14 @@ const STATUS_COLORS = {
 };
 
 export default function Renewals() {
+  const { user } = useAuth();
+  const { canSeeAll } = useUserRole();
   const [search, setSearch] = useState("");
-
-  const { data: user } = useQuery({
-    queryKey: ["me"],
-    queryFn: () => base44.auth.me(),
-  });
 
   const { data: policies = [], isLoading } = useQuery({
     queryKey: ["renewals", user?.email],
     queryFn: async () => {
-      const isAdmin = user?.role === "admin" || user?.role === "admin_staff";
-      const all = isAdmin
+      const all = canSeeAll
         ? await base44.entities.Policy.list("-renewal_date")
         : await base44.entities.Policy.filter({ assigned_broker: user?.email }, "-renewal_date");
       // Only show policies with a renewal date
