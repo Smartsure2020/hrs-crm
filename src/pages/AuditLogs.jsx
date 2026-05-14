@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/client";
-import { useQuery } from "@tanstack/react-query";
+import { base44, PAGE_SIZE } from "@/api/client";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Pagination } from "@/components/shared/Pagination";
 import { Search, RefreshCw, ShieldAlert, Download } from "lucide-react";
 import moment from "moment";
 import { downloadCSV } from "@/lib/csvUtils";
@@ -48,32 +49,46 @@ const ACTION_COLORS = {
 export default function AuditLogs() {
   const [user, setUser] = useState(null);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [actionFilter, setActionFilter] = useState("all");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [page, setPage] = useState(0);
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
   }, []);
 
-  const isPrivileged = user?.role === "admin" || user?.role === "manager";
+  // Debounce search — reset to page 0 on new term
+  useEffect(() => {
+    const t = setTimeout(() => { setDebouncedSearch(search); setPage(0); }, 300);
+    return () => clearTimeout(t);
+  }, [search]);
 
-  const { data: logs = [], isLoading, refetch } = useQuery({
-    queryKey: ["audit-logs"],
-    queryFn: () => base44.entities.AuditLog.list("-created_at", 1000),
+  // Reset to page 0 when server-side filters change
+  useEffect(() => { setPage(0); }, [actionFilter]);
+
+  const isPrivileged = user?.role === "admin" || user?.role === "admin_staff";
+
+  const { data: pageResult, isLoading, refetch } = useQuery({
+    queryKey: ["audit-logs", page, actionFilter, debouncedSearch],
+    queryFn: () => {
+      const filters = {};
+      if (actionFilter !== "all") filters.action = actionFilter;
+      return base44.entities.AuditLog.paginate(page, filters, "-created_at", debouncedSearch || null);
+    },
     enabled: !!user && isPrivileged,
+    placeholderData: keepPreviousData,
   });
 
+  const logs  = pageResult?.data  ?? [];
+  const total = pageResult?.total ?? 0;
+
+  // Date range is applied client-side on the current page (range queries not supported server-side)
   const filtered = logs.filter(log => {
-    const matchSearch = !search ||
-      log.user_name?.toLowerCase().includes(search.toLowerCase()) ||
-      log.user_email?.toLowerCase().includes(search.toLowerCase()) ||
-      log.record_name?.toLowerCase().includes(search.toLowerCase()) ||
-      log.details?.toLowerCase().includes(search.toLowerCase());
-    const matchAction = actionFilter === "all" || log.action === actionFilter;
     const matchFrom = !dateFrom || moment(log.created_at).isSameOrAfter(moment(dateFrom), "day");
-    const matchTo = !dateTo || moment(log.created_at).isSameOrBefore(moment(dateTo), "day");
-    return matchSearch && matchAction && matchFrom && matchTo;
+    const matchTo   = !dateTo   || moment(log.created_at).isSameOrBefore(moment(dateTo),   "day");
+    return matchFrom && matchTo;
   });
 
   const handleExport = () => {
@@ -94,7 +109,7 @@ export default function AuditLogs() {
       <div className="flex flex-col items-center justify-center h-full gap-3">
         <ShieldAlert className="w-10 h-10 text-red-400" />
         <p className="text-gray-500 font-medium">Access Denied</p>
-        <p className="text-sm text-gray-400">Audit Logs are only visible to Admin and Manager roles.</p>
+        <p className="text-sm text-gray-400">Audit Logs are only visible to Admin roles.</p>
       </div>
     );
   }
@@ -104,7 +119,7 @@ export default function AuditLogs() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
           <h2 className="text-xl font-bold text-[#1a2744]">Audit Logs</h2>
-          <p className="text-sm text-gray-400">{filtered.length} log entr{filtered.length !== 1 ? "ies" : "y"} · read-only</p>
+          <p className="text-sm text-gray-400">{total.toLocaleString()} log entr{total !== 1 ? "ies" : "y"} · read-only</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => refetch()}>
@@ -122,7 +137,7 @@ export default function AuditLogs() {
           <div className="relative flex-1 min-w-[200px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <Input
-              placeholder="Search by user, record, details..."
+              placeholder="Search by user, action, details..."
               value={search}
               onChange={e => setSearch(e.target.value)}
               className="pl-9"
@@ -141,14 +156,14 @@ export default function AuditLogs() {
           </Select>
           <div className="flex items-center gap-2">
             <span className="text-xs text-gray-400">From</span>
-            <Input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="w-[140px]" />
+            <Input type="date" value={dateFrom} onChange={e => { setDateFrom(e.target.value); setPage(0); }} className="w-[140px]" />
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs text-gray-400">To</span>
-            <Input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="w-[140px]" />
+            <Input type="date" value={dateTo} onChange={e => { setDateTo(e.target.value); setPage(0); }} className="w-[140px]" />
           </div>
           {(search || actionFilter !== "all" || dateFrom || dateTo) && (
-            <Button variant="ghost" size="sm" onClick={() => { setSearch(""); setActionFilter("all"); setDateFrom(""); setDateTo(""); }}>
+            <Button variant="ghost" size="sm" onClick={() => { setSearch(""); setActionFilter("all"); setDateFrom(""); setDateTo(""); setPage(0); }}>
               Clear
             </Button>
           )}
@@ -220,6 +235,7 @@ export default function AuditLogs() {
             </TableBody>
           </Table>
         </div>
+        <Pagination page={page} total={total} pageSize={PAGE_SIZE} onPageChange={setPage} isLoading={isLoading} />
       </Card>
     </div>
   );

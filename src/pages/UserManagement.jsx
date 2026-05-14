@@ -57,7 +57,7 @@ export default function UserManagement() {
   };
 
   const handleDelete = async (userId) => {
-    await base44.entities.User.delete(userId);
+    await base44.users.deleteUser(userId);
     queryClient.invalidateQueries({ queryKey: ["all-users"] });
   };
 

@@ -269,7 +269,7 @@ export default function PolicyFormModal({ open, onClose, onSuccess, user, policy
               {existingDocs.length > 0 && (
                 <div className="mb-2 space-y-1">
                   {existingDocs.map(doc => (
-                    <a key={doc.id} href={doc.file_url} target="_blank" rel="noreferrer"
+                    <a key={doc.id} href={`/api/download-file?url=${encodeURIComponent(doc.file_url)}`} target="_blank" rel="noreferrer"
                       className="flex items-center gap-2 text-xs text-blue-600 hover:underline">
                       <FileText className="w-3.5 h-3.5" />{doc.name}
                     </a>

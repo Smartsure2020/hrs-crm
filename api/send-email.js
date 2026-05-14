@@ -14,6 +14,9 @@ export default async function handler(req, res) {
   if (!to || !subject) {
     return res.status(400).json({ error: 'to and subject are required' });
   }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) {
+    return res.status(400).json({ error: 'invalid email address' });
+  }
 
   // Dev stub
   if (!process.env.RESEND_API_KEY_C) {

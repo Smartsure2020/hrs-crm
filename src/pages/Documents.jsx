@@ -188,7 +188,7 @@ export default function Documents() {
                     <TableCell className="hidden lg:table-cell text-xs text-gray-400">v{doc.version || 1}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">
-                        <a href={doc.file_url} target="_blank" rel="noopener noreferrer">
+                        <a href={`/api/download-file?url=${encodeURIComponent(doc.file_url)}`} target="_blank" rel="noopener noreferrer">
                           <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-blue-600">
                             <Download className="w-3.5 h-3.5" />
                           </Button>

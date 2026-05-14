@@ -15,6 +15,8 @@ export async function requireAuth(req, res) {
   return user;
 }
 
+const ADMIN_ROLES = ['admin', 'admin_staff'];
+
 export async function requireAdmin(req, res) {
   const user = await requireAuth(req, res);
   if (!user) return null;
@@ -23,7 +25,7 @@ export async function requireAdmin(req, res) {
     .select('role')
     .eq('id', user.id)
     .single();
-  if (profile?.role !== 'admin') {
+  if (!ADMIN_ROLES.includes(profile?.role)) {
     res.status(403).json({ error: 'Forbidden' });
     return null;
   }

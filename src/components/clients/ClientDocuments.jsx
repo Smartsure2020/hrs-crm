@@ -195,7 +195,7 @@ export default function ClientDocuments({ documents, clientId, clientName, user 
                 </div>
               </div>
               <div className="flex items-center gap-1 flex-shrink-0">
-                <a href={doc.file_url} target="_blank" rel="noopener noreferrer">
+                <a href={`/api/download-file?url=${encodeURIComponent(doc.file_url)}`} target="_blank" rel="noopener noreferrer">
                   <Button size="icon" variant="ghost" className="w-7 h-7 text-blue-500 hover:text-blue-700 hover:bg-blue-50">
                     <Download className="w-3.5 h-3.5" />
                   </Button>

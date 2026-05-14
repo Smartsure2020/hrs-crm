@@ -11,18 +11,19 @@ export default async function handler(req, res) {
   const user = await requireAuth(req, res);
   if (!user) return;
 
+  const rawName = req.query?.filename || `upload-${Date.now()}`;
+  const filename = rawName.replace(/[^a-zA-Z0-9._-]/g, '_');
+
   // Dev stub — no Blob token present
   if (!process.env.BLOB_READ_WRITE_TOKEN) {
-    const name = req.query?.filename || `upload-${Date.now()}`;
     return res.status(200).json({
-      file_url: `https://placeholder.blob.vercel-storage.com/${name}`,
+      file_url: `https://placeholder.blob.vercel-storage.com/${filename}`,
     });
   }
 
   try {
     const { put } = await import('@vercel/blob');
-    const filename = req.query?.filename || `upload-${Date.now()}`;
-    const blob = await put(filename, req, { access: 'public' });
+    const blob = await put(filename, req, { access: 'private' });
     return res.status(200).json({ file_url: blob.url });
   } catch (err) {
     console.error('upload-file error:', err);

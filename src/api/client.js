@@ -140,6 +140,14 @@ export const base44 = {
         body: JSON.stringify({ email, role }),
       });
     },
+
+    deleteUser(userId) {
+      return apiCall('/api/delete-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId }),
+      });
+    },
   },
 
   integrations: {
