@@ -1,5 +1,19 @@
 import { requireAuth } from './_auth.js';
 
+const ALLOWED_BLOB_HOSTS = ['blob.vercel-storage.com', 'placeholder.blob.vercel-storage.com'];
+
+function isAllowedBlobUrl(raw) {
+  let parsed;
+  try {
+    parsed = new URL(raw);
+  } catch {
+    return false;
+  }
+  const { hostname, protocol } = parsed;
+  if (protocol !== 'https:') return false;
+  return ALLOWED_BLOB_HOSTS.some(h => hostname === h || hostname.endsWith(`.${h}`));
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -10,6 +24,7 @@ export default async function handler(req, res) {
 
   const { url } = req.query;
   if (!url) return res.status(400).json({ error: 'url required' });
+  if (!isAllowedBlobUrl(url)) return res.status(400).json({ error: 'Invalid URL' });
 
   if (!process.env.BLOB_READ_WRITE_TOKEN) {
     return res.redirect(url);
