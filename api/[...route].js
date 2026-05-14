@@ -1,6 +1,4 @@
 import { createClient } from '@supabase/supabase-js';
-import { Ratelimit } from '@upstash/ratelimit';
-import { Redis } from '@upstash/redis';
 import { requireAuth } from './_auth.js';
 import { SCHEMAS } from './_schemas.js';
 
@@ -57,12 +55,30 @@ const ADMIN_WRITE_ONLY = new Set(['audit-logs', 'commission-splits', 'users']);
 const MAX_LIMIT = 500;
 
 // Distributed sliding-window rate limiter via Upstash Redis.
-// Requires UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN in Vercel env vars.
-const ratelimit = new Ratelimit({
-  redis: Redis.fromEnv(),
-  limiter: Ratelimit.slidingWindow(100, '1 m'),
-  prefix: 'hrs-crm-rl',
-});
+// Lazy-initialised on first request; gracefully disabled if env vars are missing,
+// so the API still works in dev / preview / demo environments without Redis.
+let ratelimit = null;
+let ratelimitInitTried = false;
+
+async function getRateLimiter() {
+  if (ratelimitInitTried) return ratelimit;
+  ratelimitInitTried = true;
+  if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
+    return null;
+  }
+  try {
+    const { Ratelimit } = await import('@upstash/ratelimit');
+    const { Redis } = await import('@upstash/redis');
+    ratelimit = new Ratelimit({
+      redis: Redis.fromEnv(),
+      limiter: Ratelimit.slidingWindow(100, '1 m'),
+      prefix: 'hrs-crm-rl',
+    });
+  } catch (err) {
+    console.warn('Rate limiter init failed, continuing without it:', err.message);
+  }
+  return ratelimit;
+}
 
 // Per-entity allowlist of sortable columns (prevents schema enumeration via PostgREST errors).
 const SORTABLE_COLUMNS = {
@@ -122,9 +138,12 @@ export default async function handler(req, res) {
   const isAdmin = callerProfile?.role === 'admin' || callerProfile?.role === 'admin_staff';
   const callerEmail = user.email;
 
-  const { success } = await ratelimit.limit(user.id);
-  if (!success) {
-    return res.status(429).json({ error: 'Too many requests' });
+  const rl = await getRateLimiter();
+  if (rl) {
+    const { success } = await rl.limit(user.id);
+    if (!success) {
+      return res.status(429).json({ error: 'Too many requests' });
+    }
   }
 
   const url = new URL(req.url, `http://${req.headers.host}`);
