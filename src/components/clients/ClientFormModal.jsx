@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, AlertTriangle } from "lucide-react";
-import { supabase } from "@/lib/supabaseClient";
 import { toast } from "@/components/ui/use-toast";
 
 const PROVINCES = [
@@ -124,23 +123,13 @@ export default function ClientFormModal({ open, onClose, onSuccess, user, client
     }
 
     if (!client) {
-      const queries = [];
-      if (submitForm.id_number?.trim())
-        queries.push(supabase.from('clients').select('id,client_name,id_number,email,company_reg').eq('id_number', submitForm.id_number.trim()));
-      if (submitForm.email?.trim())
-        queries.push(supabase.from('clients').select('id,client_name,id_number,email,company_reg').ilike('email', submitForm.email.trim()));
-      if (submitForm.company_reg?.trim())
-        queries.push(supabase.from('clients').select('id,client_name,id_number,email,company_reg').eq('company_reg', submitForm.company_reg.trim()));
-
-      if (queries.length > 0) {
-        const results = await Promise.all(queries);
-        const seen = new Set();
-        const found = [];
-        for (const { data } of results) {
-          for (const row of (data || [])) {
-            if (!seen.has(row.id)) { seen.add(row.id); found.push(row); }
-          }
-        }
+      const hasCheckableField = submitForm.id_number?.trim() || submitForm.email?.trim() || submitForm.company_reg?.trim();
+      if (hasCheckableField) {
+        const { duplicates: found } = await base44.entities.Client.checkDuplicate({
+          id_number:   submitForm.id_number,
+          email:       submitForm.email,
+          company_reg: submitForm.company_reg,
+        });
         if (found.length) {
           setDuplicates({ list: found, submitForm });
           return;

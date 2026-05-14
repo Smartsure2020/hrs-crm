@@ -111,7 +111,16 @@ function makeEntityClient(entity) {
 
 export const base44 = {
   entities: {
-    Client:           makeEntityClient('clients'),
+    Client: {
+      ...makeEntityClient('clients'),
+      checkDuplicate(fields) {
+        return apiCall('/api/clients-check-duplicate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(fields),
+        });
+      },
+    },
     Deal:             makeEntityClient('deals'),
     Policy:           makeEntityClient('policies'),
     Claim:            makeEntityClient('claims'),

@@ -121,6 +121,14 @@ export default function DealFormModal({ open, onClose, onSuccess, user, deal, cl
     }
   };
 
+  // A deal must have a resolvable client name before it can be saved.
+  // Three modes: select from list, "new client" inline entry, or plain text (no clients loaded).
+  const canSubmit = !clients?.length
+    ? !!form.client_name
+    : form.client_id === '__new__'
+      ? !!newClientName.trim()
+      : !!form.client_id;
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-lg">
@@ -233,7 +241,7 @@ export default function DealFormModal({ open, onClose, onSuccess, user, deal, cl
           </div>
           <div className="flex gap-2">
             <Button variant="outline" onClick={onClose}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={loading} className="bg-[#1a2744] hover:bg-[#243556]">
+            <Button onClick={handleSubmit} disabled={loading || !canSubmit} className="bg-[#1a2744] hover:bg-[#243556]">
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : deal ? "Save" : "Create Deal"}
             </Button>
           </div>
