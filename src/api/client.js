@@ -13,7 +13,14 @@ async function apiCall(path, options = {}) {
     headers['Authorization'] = `Bearer ${session.access_token}`;
   }
   const res = await fetch(path, { ...options, headers });
-  const data = await res.json();
+  const text = await res.text();
+  let data;
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch {
+    // Server returned non-JSON (e.g. Vercel error page) — surface a clean message.
+    throw new Error(`Server error ${res.status}: ${text.slice(0, 200)}`);
+  }
   if (!res.ok) throw new Error(data.error || `API error ${res.status}`);
   return data;
 }
