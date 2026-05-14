@@ -42,6 +42,7 @@ const BROKER_SCOPE_COL = {
   claims:             'assigned_broker',
   documents:          'uploaded_by',
   tasks:              'assigned_to',
+  users:              'email',
   'activity-logs':    'user_email',
   'commission-splits':'broker_email',
 };

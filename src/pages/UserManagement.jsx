@@ -14,8 +14,8 @@ import InviteUserModal from "@/components/users/InviteUserModal";
 
 const STATUS_COLORS = {
   pending:  "bg-yellow-100 text-yellow-700",
-  approved: "bg-emerald-100 text-emerald-700",
-  rejected: "bg-red-100 text-red-500",
+  active:   "bg-emerald-100 text-emerald-700",
+  inactive: "bg-red-100 text-red-500",
 };
 
 export default function UserManagement() {
@@ -42,12 +42,12 @@ export default function UserManagement() {
   const pendingCount = users.filter(u => !u.status || u.status === "pending").length;
 
   const handleApprove = async (userId) => {
-    await base44.entities.User.update(userId, { status: "approved" });
+    await base44.entities.User.update(userId, { status: "active" });
     queryClient.invalidateQueries({ queryKey: ["all-users"] });
   };
 
   const handleReject = async (userId) => {
-    await base44.entities.User.update(userId, { status: "rejected" });
+    await base44.entities.User.update(userId, { status: "inactive" });
     queryClient.invalidateQueries({ queryKey: ["all-users"] });
   };
 
@@ -88,8 +88,8 @@ export default function UserManagement() {
             <SelectContent>
               <SelectItem value="all">All Users</SelectItem>
               <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="approved">Approved</SelectItem>
-              <SelectItem value="rejected">Rejected</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="inactive">Inactive</SelectItem>
             </SelectContent>
           </Select>
           <Button className="bg-[#1a2744] hover:bg-[#243556]" onClick={() => setShowInvite(true)}>
@@ -196,14 +196,14 @@ export default function UserManagement() {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center justify-end gap-1">
-                        {!isSelf && status !== "approved" && (
+                        {!isSelf && status !== "active" && (
                           <Button size="sm" variant="ghost"
                             className="h-7 px-2 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 text-xs"
                             onClick={() => handleApprove(u.id)}>
                             <CheckCircle className="w-3.5 h-3.5 mr-1" /> Approve
                           </Button>
                         )}
-                        {!isSelf && status === "approved" && (
+                        {!isSelf && status === "active" && (
                           <Button size="sm" variant="ghost"
                             className="h-7 px-2 text-orange-500 hover:text-orange-600 hover:bg-orange-50 text-xs"
                             onClick={() => handleReject(u.id)}>

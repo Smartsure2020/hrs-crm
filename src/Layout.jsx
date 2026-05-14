@@ -44,17 +44,6 @@ export default function Layout({ children, currentPageName }) {
       .catch(() => { setLoading(false); });
   }, []);
 
-  // Auto-set status for new users: admins get approved, others get pending
-  useEffect(() => {
-    if (!user) return;
-    if (!user.status) {
-      const initialStatus = user.role === "admin" ? "approved" : "pending";
-      base44.auth.updateMe({ status: initialStatus });
-    } else if (user.role === "admin" && user.status !== "approved") {
-      base44.auth.updateMe({ status: "approved" });
-    }
-  }, [user]);
-
   const handleLogout = () => base44.auth.logout();
 
   // ── Access gate ──────────────────────────────────────────────
@@ -67,7 +56,7 @@ export default function Layout({ children, currentPageName }) {
   }
 
   // Show pending / rejected screen for non-admins that haven't been approved
-  if (user && user.role !== "admin" && user.status !== "approved") {
+  if (user && user.role !== "admin" && user.status !== "active") {
     return <PendingApproval status={user.status} user={user} onLogout={handleLogout} />;
   }
 
