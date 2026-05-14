@@ -61,6 +61,16 @@ const LEGACY_MAP = {
 const normalizeStage = (s) => LEGACY_MAP[s] || s || "lead";
 const getStageConf = (s) => STAGES.find(x => x.value === s) || STAGES[0];
 
+const UI_TO_DB_STAGE = {
+  lead:       "lead_received",
+  quoting:    "quote_requested",
+  quote_sent: "quote_sent",
+  follow_up:  "follow_up",
+  won:        "policy_bound",
+  lost:       "lost",
+};
+const toDbStage = (s) => UI_TO_DB_STAGE[s] || s;
+
 const COL_WIDTHS = "grid-cols-[2fr_1.5fr_1.7fr_3fr_1.2fr]";
 
 export default function Pipeline() {
@@ -152,9 +162,10 @@ export default function Pipeline() {
   };
 
   const handleStageChange = async (id, stage) => {
-    await base44.entities.Deal.update(id, { stage });
+    const isWon = stage === "won" || stage === "policy_bound";
+    await base44.entities.Deal.update(id, { stage: toDbStage(stage) });
     // When a deal is won, mark the associated client as active
-    if (stage === "won") {
+    if (isWon) {
       const deal = rawDeals.find(d => d.id === id);
       if (deal?.client_id) {
         await base44.entities.Client.update(deal.client_id, { status: "active" });
@@ -183,13 +194,14 @@ export default function Pipeline() {
   };
 
   const handleBulkMove = async (stage) => {
-    await Promise.all([...selected].map(id => base44.entities.Deal.update(id, { stage })));
+    await Promise.all([...selected].map(id => base44.entities.Deal.update(id, { stage: toDbStage(stage) })));
     queryClient.invalidateQueries({ queryKey: ["deals"] });
     clearSelection();
   };
 
   const handleAddRow = async () => {
-    await base44.entities.Deal.create({ client_name: "", stage: stageFilter !== "all" ? stageFilter : "lead", assigned_broker: user?.email, broker_name: user?.full_name });
+    const uiStage = stageFilter !== "all" ? stageFilter : "lead";
+    await base44.entities.Deal.create({ client_name: "", stage: toDbStage(uiStage), assigned_broker: user?.email, broker_name: user?.full_name });
     queryClient.invalidateQueries({ queryKey: ["deals"] });
   };
 
