@@ -1,8 +1,7 @@
+import './instrument.js';
 import { createClient } from '@supabase/supabase-js';
 import { requireAuth } from './_auth.js';
-import { initSentry, Sentry } from './_sentry.js';
-
-initSentry();
+import { Sentry } from './_sentry.js';
 
 const supabase = createClient(
   process.env.SUPABASE_URL,

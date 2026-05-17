@@ -1,10 +1,9 @@
+import './instrument.js';
 import { requireAuth }   from './_auth.js';
 import { isAdminRole }   from './_permissions.js';
 import { getRateLimiter } from './_ratelimit.js';
 import { createActions }  from './_base.js';
-import { initSentry, Sentry } from './_sentry.js';
-
-initSentry();
+import { Sentry } from './_sentry.js';
 
 import { config as clientsConfig }      from './repositories/clients.js';
 import { config as policiesConfig }     from './repositories/policies.js';
