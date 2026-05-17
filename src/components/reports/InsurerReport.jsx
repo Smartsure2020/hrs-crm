@@ -20,12 +20,6 @@ const INSURERS = [
   "DISCOVERY","MOMENTUM","BRYTE","GENLIB","GUARDRISK","MARABILIS"
 ];
 
-const STATUS_COLORS = {
-  active: "bg-emerald-100 text-emerald-700",
-  pending: "bg-yellow-100 text-yellow-700",
-  cancelled: "bg-gray-100 text-gray-600",
-  expired: "bg-red-100 text-red-700",
-};
 
 export default function InsurerReport({ user }) {
   const { canSeeAll: isAdmin } = useUserRole();

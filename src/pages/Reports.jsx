@@ -47,8 +47,6 @@ export default function Reports() {
     );
   }
 
-  const report = REPORTS.find(r => r.id === activeReport);
-
   return (
     <div className="p-4 lg:p-6 space-y-5">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">

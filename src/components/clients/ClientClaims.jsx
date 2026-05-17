@@ -27,7 +27,7 @@ const EMPTY = {
   broker_name: "",
 };
 
-export default function ClientClaims({ claims = [], clientId, clientName, brokerName, policies = [] }) {
+export default function ClientClaims({ claims = [], clientId, clientName, brokerName }) {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(EMPTY);

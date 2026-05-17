@@ -89,9 +89,6 @@ export function AuthProvider({ children }) {
       user,
       isAuthenticated,
       isLoadingAuth,
-      // Legacy compat — callers that still use these names keep working
-      isLoadingPublicSettings: false,
-      authError: null,
       signIn,
       signOut,
       updateMe,

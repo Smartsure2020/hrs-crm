@@ -33,7 +33,7 @@ const STATUS_COLORS = {
 export default function Clients() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { isAdmin, isAdminStaff, canSeeAll, canImportExport } = useUserRole();
+  const { canSeeAll, canImportExport } = useUserRole();
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");

@@ -82,7 +82,7 @@ export default function Policies() {
     return { success, skipped };
   };
 
-  const { data: policies = [], isLoading } = useQuery({
+  const { data: policies = [] } = useQuery({
     queryKey: ["policies", user?.email],
     queryFn: () => isAdmin
       ? base44.entities.Policy.list("-created_at", 500)

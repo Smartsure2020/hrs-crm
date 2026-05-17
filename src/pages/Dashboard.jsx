@@ -92,7 +92,6 @@ export default function Dashboard() {
   // Insurer/policy metrics for admin
   const totalMonthlyPremium = policies.filter(p => p.status === "active").reduce((s, p) => s + (p.monthly_premium || 0), 0);
   const insurerCounts = policies.reduce((acc, p) => { if (p.insurer) acc[p.insurer] = (acc[p.insurer] || 0) + 1; return acc; }, {});
-  const topInsurer = Object.entries(insurerCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "—";
   const insurerPremiums = policies.reduce((acc, p) => { if (p.insurer) acc[p.insurer] = (acc[p.insurer] || 0) + (p.monthly_premium || 0); return acc; }, {});
   const topInsurerByPremium = Object.entries(insurerPremiums).sort((a, b) => b[1] - a[1])[0]?.[0] || "—";
 

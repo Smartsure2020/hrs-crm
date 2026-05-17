@@ -1,7 +1,7 @@
 import React from "react";
 
 export default function NotesCell({ deal, edit }) {
-  const { isEdit, getPending, setPending, keyFn, saveField, setEditingCell, startEdit } = edit;
+  const { isEdit, setPending, keyFn, saveField, setEditingCell, startEdit } = edit;
   const isEditing = isEdit(deal.id, "notes");
   const val = deal.notes || "";
   const [localVal, setLocalVal] = React.useState(val);
