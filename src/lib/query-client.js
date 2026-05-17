@@ -1,6 +1,6 @@
 import { QueryClient, QueryCache, MutationCache } from '@tanstack/react-query';
 
-const swallowAuthExpired = (err) => {
+const swallowAuthExpired = (/** @type {any} */ err) => {
   if (err?.code === 'AUTH_EXPIRED') return;
 };
 
@@ -10,7 +10,7 @@ export const queryClientInstance = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
-      retry: (failureCount, err) => {
+      retry: (failureCount, /** @type {any} */ err) => {
         if (err?.code === 'AUTH_EXPIRED') return false;
         return failureCount < 1;
       },

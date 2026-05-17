@@ -27,7 +27,7 @@ async function apiCall(path, options = {}) {
       });
     }
     // Throw a tagged error so React Query's onError can quietly ignore it
-    const err = new Error('Session expired');
+    const err = /** @type {any} */ (new Error('Session expired'));
     err.code = 'AUTH_EXPIRED';
     throw err;
   }
@@ -136,7 +136,7 @@ export const base44 = {
     async me() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) {
-        const err = new Error('Not authenticated');
+        const err = /** @type {any} */ (new Error('Not authenticated'));
         err.status = 401;
         throw err;
       }
