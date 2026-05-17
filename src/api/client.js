@@ -132,41 +132,6 @@ export const base44 = {
     CommissionSplit:  makeEntityClient('commission-splits'),
   },
 
-  auth: {
-    async me() {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user) {
-        const err = /** @type {any} */ (new Error('Not authenticated'));
-        err.status = 401;
-        throw err;
-      }
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', session.user.id)
-        .single();
-      return { ...profile, email: session.user.email };
-    },
-
-    async updateMe(data) {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user) return;
-      const { id: _id, created_at: _ca, updated_at: _ua, ...payload } = data;
-      await supabase.from('profiles').update(payload).eq('id', session.user.id);
-    },
-
-    logout(redirectUrl) {
-      supabase.auth.signOut().then(() => {
-        window.location.href = redirectUrl || '/';
-      });
-    },
-
-    redirectToLogin(returnUrl) {
-      const next = returnUrl ? `?next=${encodeURIComponent(returnUrl)}` : '';
-      window.location.href = `/login${next}`;
-    },
-  },
-
   users: {
     inviteUser(email, role) {
       return apiCall('/api/invite-user', {
