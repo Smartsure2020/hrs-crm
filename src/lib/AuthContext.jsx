@@ -76,7 +76,7 @@ export function AuthProvider({ children }) {
       .update(payload)
       .eq('id', session.user.id)
       .select()
-      .single();
+      .maybeSingle();
     if (updated) setUser(prev => ({ ...prev, ...updated }));
   }
 
