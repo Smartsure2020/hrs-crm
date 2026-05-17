@@ -87,7 +87,7 @@ export default defineConfig({
           if (id.includes('@radix-ui')) return 'vendor-radix';
           if (id.includes('@supabase')) return 'vendor-supabase';
           if (id.includes('@tanstack')) return 'vendor-query';
-          if (id.includes('react-dom') || id.includes('react-router') || id.includes('scheduler')) return 'vendor-react';
+          if (id.includes('/node_modules/react/') || id.includes('react-dom') || id.includes('react-router') || id.includes('scheduler')) return 'vendor-react';
         },
       },
     },
