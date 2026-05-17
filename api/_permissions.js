@@ -1,8 +1,5 @@
-export const ROLES = Object.freeze({
-  ADMIN:       'admin',
-  ADMIN_STAFF: 'admin_staff',
-  BROKER:      'broker',
-});
-
-export const ADMIN_ROLES = [ROLES.ADMIN, ROLES.ADMIN_STAFF];
-export const isAdminRole  = (role) => ADMIN_ROLES.includes(role);
+// Single source of truth lives in src/lib/permissions.js — importable by both
+// the frontend (Vite, via @/lib/permissions) and the API (Node, via this re-export).
+import { ROLES, ADMIN_ROLES } from '../src/lib/permissions.js';
+export { ROLES, ADMIN_ROLES };
+export const isAdminRole = (role) => ADMIN_ROLES.includes(role);

@@ -145,8 +145,8 @@ export const SCHEMAS = {
   }),
 
   'activity-logs': z.object({
-    action:      s,
-    entity_type: s,
+    action:      req,
+    entity_type: req,
     entity_name: s,
     entity_id:   s,
     user_email:  s,
