@@ -2,6 +2,9 @@ import { requireAuth }   from './_auth.js';
 import { isAdminRole }   from './_permissions.js';
 import { getRateLimiter } from './_ratelimit.js';
 import { createActions }  from './_base.js';
+import { initSentry, Sentry } from './_sentry.js';
+
+initSentry();
 
 import { config as clientsConfig }      from './repositories/clients.js';
 import { config as policiesConfig }     from './repositories/policies.js';
@@ -35,6 +38,8 @@ const ACTIONS = Object.fromEntries(
 );
 
 export default async function handler(req, res) {
+  const start = Date.now();
+
   const user = await requireAuth(req, res);
   if (!user) return;
 
@@ -69,9 +74,22 @@ export default async function handler(req, res) {
   };
 
   try {
-    return await act(req, res, ctx, params);
+    const result = await act(req, res, ctx, params);
+    const ms = Date.now() - start;
+    console.log(`API [${entity}/${action}] ${ms}ms`);
+    if (ms > 3000) console.warn(`Slow API [${entity}/${action}]: ${ms}ms`);
+    return result;
   } catch (err) {
-    console.error(`API error [${entity}/${action}]:`, err);
+    const ms = Date.now() - start;
+    console.error(`API error [${entity}/${action}] ${ms}ms:`, err);
+    Sentry.withScope((scope) => {
+      scope.setUser({ id: user.id, email: user.email });
+      scope.setTag('entity', entity);
+      scope.setTag('action', action);
+      scope.setExtra('duration_ms', ms);
+      scope.setExtra('method', req.method);
+      Sentry.captureException(err);
+    });
     return res.status(500).json({ error: 'Something went wrong. Please try again or contact support.' });
   }
 }

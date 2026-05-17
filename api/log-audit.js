@@ -1,5 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 import { requireAuth } from './_auth.js';
+import { initSentry, Sentry } from './_sentry.js';
+
+initSentry();
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -38,6 +41,7 @@ export default async function handler(req, res) {
 
   if (error) {
     console.warn('Audit log insert failed:', error.message);
+    Sentry.captureMessage(`Audit log insert failed: ${error.message}`, 'warning');
     return res.status(500).json({ error: 'Failed to write audit log' });
   }
 
