@@ -11,26 +11,20 @@ import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Trash2 } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 
+import { MODAL_STAGES } from "@/components/pipeline/stages";
+
 const POLICY_TYPES = ["personal", "commercial"];
-const STAGES = [
-  { value: "lead_received", label: "Lead Received" },
-  { value: "contacted", label: "Contacted" },
-  { value: "quote_requested", label: "Quote Requested" },
-  { value: "quotes_received", label: "Quotes Received" },
-  { value: "quote_sent", label: "Quote Sent to Client" },
-  { value: "follow_up", label: "Follow Up" },
-  { value: "policy_bound", label: "Policy Bound" },
-  { value: "lost", label: "Lost Deal" },
-];
+
+const defaultForm = (user) => ({
+  client_id: "", client_name: "", policy_type: "personal", estimated_premium: "",
+  stage: "lead_received", assigned_broker: user?.email || "", broker_name: user?.full_name || "",
+  notes: "", next_action: "", reminder_date: "", insurer: ""
+});
 
 export default function DealFormModal({ open, onClose, onSuccess, user, deal, clients, isAdmin, brokers }) {
   const [loading, setLoading] = useState(false);
   const [newClientName, setNewClientName] = useState("");
-  const [form, setForm] = useState({
-    client_id: "", client_name: "", policy_type: "motor", estimated_premium: "",
-    stage: "lead_received", assigned_broker: user?.email || "", broker_name: user?.full_name || "",
-    notes: "", next_action: "", reminder_date: "", insurer: ""
-  });
+  const [form, setForm] = useState(() => defaultForm(user));
 
   useEffect(() => {
     if (deal) {
@@ -40,11 +34,7 @@ export default function DealFormModal({ open, onClose, onSuccess, user, deal, cl
         reminder_date: deal.reminder_date || ""
       });
     } else {
-      setForm({
-        client_id: "", client_name: "", policy_type: "motor", estimated_premium: "",
-        stage: "lead_received", assigned_broker: user?.email || "", broker_name: user?.full_name || "",
-        notes: "", next_action: "", reminder_date: "", insurer: ""
-      });
+      setForm(defaultForm(user));
       setNewClientName("");
     }
   }, [deal, open]);
@@ -192,7 +182,7 @@ export default function DealFormModal({ open, onClose, onSuccess, user, deal, cl
               <Select value={form.stage} onValueChange={v => setForm({...form, stage: v})}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {STAGES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+                  {MODAL_STAGES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
