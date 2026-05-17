@@ -242,6 +242,7 @@ export default function ClientProfile() {
             claims={claims}
             clientId={clientId}
             clientName={client?.client_name}
+            brokerName={client?.broker_name || client?.assigned_broker}
             policies={policies}
           />
         </TabsContent>

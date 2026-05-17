@@ -24,9 +24,10 @@ const EMPTY = {
   date_of_incident: "", date_submitted: "", date_settled: "",
   amount_claimed: "", amount_settled: "", insurer: "",
   policy_number: "", description: "", notes: "",
+  broker_name: "",
 };
 
-export default function ClientClaims({ claims = [], clientId, clientName, policies = [] }) {
+export default function ClientClaims({ claims = [], clientId, clientName, brokerName, policies = [] }) {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(EMPTY);
@@ -44,6 +45,7 @@ export default function ClientClaims({ claims = [], clientId, clientName, polici
       ...form,
       client_id: clientId,
       client_name: clientName,
+      broker_name: form.broker_name || brokerName || undefined,
       amount_claimed: form.amount_claimed ? Number(form.amount_claimed) : undefined,
       amount_settled: form.amount_settled ? Number(form.amount_settled) : undefined,
     };

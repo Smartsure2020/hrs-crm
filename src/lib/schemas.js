@@ -112,6 +112,7 @@ export const SCHEMAS = {
     client_id:        req,
     client_name:      req,
     assigned_broker:  s,
+    broker_name:      s,
   }),
 
   documents: z.object({
