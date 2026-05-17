@@ -73,4 +73,23 @@ export default defineConfig({
       '@': path.resolve(process.cwd(), './src'),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return;
+          if (id.includes('recharts') || id.includes('/d3-')) return 'vendor-charts';
+          if (id.includes('framer-motion')) return 'vendor-motion';
+          if (id.includes('react-leaflet') || id.includes('/leaflet/')) return 'vendor-maps';
+          if (id.includes('three')) return 'vendor-3d';
+          if (id.includes('jspdf') || id.includes('html2canvas')) return 'vendor-pdf';
+          if (id.includes('react-quill') || id.includes('/quill/')) return 'vendor-editor';
+          if (id.includes('@radix-ui')) return 'vendor-radix';
+          if (id.includes('@supabase')) return 'vendor-supabase';
+          if (id.includes('@tanstack')) return 'vendor-query';
+          if (id.includes('react-dom') || id.includes('react-router') || id.includes('scheduler')) return 'vendor-react';
+        },
+      },
+    },
+  },
 });

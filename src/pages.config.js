@@ -47,19 +47,21 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
-import AuditLogs from './pages/AuditLogs';
-import ClientProfile from './pages/ClientProfile';
-import Clients from './pages/Clients';
-import Dashboard from './pages/Dashboard';
-import Documents from './pages/Documents';
-import Pipeline from './pages/Pipeline';
-import Policies from './pages/Policies';
-import Reports from './pages/Reports';
-import Tasks from './pages/Tasks';
-import UserManagement from './pages/UserManagement';
-import Renewals from './pages/Renewals';
-import ROA from './pages/ROA';
+import { lazy } from 'react';
 import __Layout from './Layout.jsx';
+
+const AuditLogs = lazy(() => import('./pages/AuditLogs'));
+const ClientProfile = lazy(() => import('./pages/ClientProfile'));
+const Clients = lazy(() => import('./pages/Clients'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Documents = lazy(() => import('./pages/Documents'));
+const Pipeline = lazy(() => import('./pages/Pipeline'));
+const Policies = lazy(() => import('./pages/Policies'));
+const Reports = lazy(() => import('./pages/Reports'));
+const Tasks = lazy(() => import('./pages/Tasks'));
+const UserManagement = lazy(() => import('./pages/UserManagement'));
+const Renewals = lazy(() => import('./pages/Renewals'));
+const ROA = lazy(() => import('./pages/ROA'));
 
 
 export const PAGES = {
