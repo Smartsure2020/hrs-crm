@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Plus, RefreshCw, Trash2, MoveRight, X } from "lucide-react";
 import { useInlineEdit } from "@/hooks/useInlineEdit";
+import { toast } from "@/components/ui/use-toast";
 import { STAGES, ACTIVE_STAGES, normalizeStage, toDbStage } from "@/components/pipeline/stages";
 import DealSection from "@/components/pipeline/DealSection";
 import DealFormModal from "@/components/pipeline/DealFormModal";
@@ -140,11 +141,15 @@ export default function Pipeline() {
 
   const handleAddRow = async () => {
     const uiStage = stageFilter !== "all" ? stageFilter : "lead";
-    await base44.entities.Deal.create({
-      client_name: "", stage: toDbStage(uiStage),
-      assigned_broker: user?.email, broker_name: user?.full_name,
-    });
-    queryClient.invalidateQueries({ queryKey: ["deals"] });
+    try {
+      await base44.entities.Deal.create({
+        client_name: "New Lead", stage: toDbStage(uiStage),
+        assigned_broker: user?.email, broker_name: user?.full_name,
+      });
+      queryClient.invalidateQueries({ queryKey: ["deals"] });
+    } catch (err) {
+      toast({ title: "Failed to add row", description: err?.message ?? "Unknown error", variant: "destructive" });
+    }
   };
 
   const sharedProps = { edit, selected, toggleSelect, handleStageChange, setEditDeal, clientMap };
