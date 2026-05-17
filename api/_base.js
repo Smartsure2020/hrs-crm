@@ -34,6 +34,34 @@ function validationError(res, issues) {
   });
 }
 
+// Maps Postgres/Supabase error codes to meaningful HTTP responses.
+// Returns the response when the error is mapped; throws when it isn't.
+function pgErrorResponse(res, error) {
+  const code = error?.code;
+  const detail = error?.details || error?.message || '';
+
+  // Extract the column name from Postgres detail strings like:
+  // "Key (email)=(foo@bar.com) already exists."
+  const colMatch = detail.match(/Key \(([^)]+)\)/);
+  const field = colMatch?.[1] ?? null;
+
+  const PG_ERRORS = {
+    '23505': { status: 409, message: field
+      ? `A record with this ${field} already exists.`
+      : 'A duplicate record already exists.' },
+    '23503': { status: 422, message: 'This record references something that no longer exists.' },
+    '23502': { status: 422, message: field
+      ? `${field} is required.`
+      : 'A required field is missing.' },
+    '42501': { status: 403, message: 'You do not have permission to perform this action.' },
+    'PGRST116': { status: 404, message: 'Record not found.' },
+  };
+
+  const mapped = PG_ERRORS[code];
+  if (!mapped) throw error;
+  return res.status(mapped.status).json({ error: mapped.message, code });
+}
+
 // Returns a CRUD action map bound to the given entity config.
 // The returned object is created once at startup (in [...route].js) and reused per request.
 export function createActions(config, entity) {
@@ -60,7 +88,7 @@ export function createActions(config, entity) {
       q = applySearch(q, searchableCols, params.search);
       q = q.range(params.offset, params.offset + params.limit - 1);
       const { data, error, count } = await q;
-      if (error) throw error;
+      if (error) return pgErrorResponse(res, error);
       return res.status(200).json({ data, total: count });
     },
 
@@ -69,7 +97,7 @@ export function createActions(config, entity) {
       let q = supabase.from(table).select('*').eq('id', params.id);
       q = applyScope(q, ctx);
       const { data, error } = await q.single();
-      if (error) throw error;
+      if (error) return pgErrorResponse(res, error);
       return res.status(200).json(data);
     },
 
@@ -84,7 +112,7 @@ export function createActions(config, entity) {
         parsed.data[brokerScopeCol] = ctx.callerEmail;
       }
       const { data, error } = await supabase.from(table).insert(parsed.data).select().single();
-      if (error) throw error;
+      if (error) return pgErrorResponse(res, error);
       return res.status(201).json(data);
     },
 
@@ -97,7 +125,7 @@ export function createActions(config, entity) {
       if (!parsed.success) return validationError(res, parsed.error.issues);
       if (!ctx.isAdmin && brokerScopeCol) delete parsed.data[brokerScopeCol];
       const { data, error } = await supabase.from(table).update(parsed.data).eq('id', id).select().single();
-      if (error) throw error;
+      if (error) return pgErrorResponse(res, error);
       return res.status(200).json(data);
     },
 
@@ -107,7 +135,7 @@ export function createActions(config, entity) {
       if (!id) return res.status(400).json({ error: 'id required' });
       if (!(await callerOwns(id, ctx))) return res.status(403).json({ error: 'Forbidden' });
       const { error } = await supabase.from(table).delete().eq('id', id);
-      if (error) throw error;
+      if (error) return pgErrorResponse(res, error);
       return res.status(200).json({ success: true });
     },
 
@@ -124,7 +152,7 @@ export function createActions(config, entity) {
       q = applySearch(q, searchableCols, params.search);
       q = q.range(params.offset, params.offset + params.limit - 1);
       const { data, error, count } = await q;
-      if (error) throw error;
+      if (error) return pgErrorResponse(res, error);
       return res.status(200).json({ data, total: count });
     },
   };

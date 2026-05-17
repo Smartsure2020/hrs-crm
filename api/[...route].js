@@ -72,6 +72,6 @@ export default async function handler(req, res) {
     return await act(req, res, ctx, params);
   } catch (err) {
     console.error(`API error [${entity}/${action}]:`, err);
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Something went wrong. Please try again or contact support.' });
   }
 }
